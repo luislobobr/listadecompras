@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras 4.2 (Login Anónimo)</title>
+    <title>Lista de Compras 4.2 (Login Google)</title>
     
     <!-- Configuração do Firebase Injetada -->
     <script type="module">
@@ -28,9 +28,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
-            signInAnonymously, // Voltamos ao Login Anónimo
+            signInAnonymously, // Mantido para fallback
             signInWithCustomToken, // Necessário para o Canvas
-            onAuthStateChanged 
+            onAuthStateChanged,
+            signInWithPopup,
+            GoogleAuthProvider,
+            signOut
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, 
@@ -48,7 +51,8 @@
         // Atribui as importações a `window` para que o script principal possa aceder a elas
         window.firebaseDependencies = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
-            onAuthStateChanged, getFirestore, doc, setDoc, 
+            onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut,
+            getFirestore, doc, setDoc, 
             onSnapshot, collection, query, deleteDoc, getDoc, getDocs, setLogLevel
         };
     </script>
@@ -116,6 +120,49 @@
             text-align: left;
         }
 
+        /* Botão de Login com Google */
+        #google-login-btn {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px auto;
+            width: 100%;
+            max-width: 250px;
+            transition: background-color 0.3s;
+        }
+        
+        #google-login-btn:hover {
+            background-color: #3367D6;
+        }
+        
+        #google-login-btn img {
+            width: 20px;
+            height: 20px;
+        }
+        
+        #logout-btn {
+            background-color: #f97316;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        #logout-btn:hover {
+            background-color: #ea580c;
+        }
 
         /* Formulário de Adição */
         #form-item {
@@ -355,15 +402,22 @@
         
         <div id="auth-status">
             <div id="user-info">A carregar autenticação...</div>
-             <div id="auth-error-message" class="error-message" style="display:none;"></div>
-             <div class="alert-message">
-                <strong>Modo Nuvem (Firebase Ativo):</strong> A sua lista está a ser salva automaticamente na nuvem usando **Login Anónimo**.
-                <br><em>Atenção: Ative o provedor Anónimo no seu console do Firebase!</em>
-             </div>
+            <div id="auth-buttons">
+                <button id="google-login-btn">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTAwOUg5LjE4VjEwLjkxSDExLjQ4QzExLjI0IDExLjk3IDEwLjUzIDEyLjkyIDkuNDcgMTMuMzZMMTEuNTYgMTUuMzlDMTMuMTQgMTMuOTMgMTQuMDIgMTEuNTMgMTQuMDIgOC45OTk5OUMxNC4wMiA4LjQyOTk5IDEzLjk2IDcuODc5OTkgMTMuODQgNy4zNDk5OUwxNi41MSA5LjIwNDU1WiIgZmlsbD0iIzQyODVGMyIvPgo8cGF0aCBkPSJNOS4xOCAxNy4wMkM2LjY2IDE3LjAyIDQuNDcgMTUuODIgMy4wNSAxMy45NEw1LjE0IDExLjkxQzUuODggMTMuMjkgNy4yMiAxNC4xIDkuMTggMTQuMUM5LjY2IDE0LjEgMTAuMTIgMTQuMDIgMTAuNTUgMTMuODdMMTIuNjQgMTUuOTBDMTEuNjMgMTYuNzMgMTAuNDggMTcuMDIgOS4xOCAxNy4wMloiIGZpbGw9IiMzNEE4NTMiLz4KPHBhdGggZD0iTTMuMDUgNi4wNTk5OUMzLjA1IDUuNjk5OTkgMy4xMSA1LjM0OTk5IDMuMjMgNC45OTk5OUwxLjE0IDIuOTY5OTlDMC41NCA0LjA0OTk5IDAuMTggNS4yNzk5OSAwLjE4IDYuNDk5OTlDMC4xOCA3LjcxOTk5IDAuNTQgOC45Mzk5OSAxLjE0IDEwLjAyTDMuMjMgNy45OTk5OUMzLjExIDcuNjQ5OTkgMy4wNSA3LjI5OTk5IDMuMDUgNi45Mzk5OVY2LjA1OTk5WiIgZmlsbD0iI0ZCQkMwNCIvPgo8cGF0aCBkPSJNOS4xOCAyLjg5OTk5QzEwLjU1IDIuODk5OTkgMTEuNzYgMy4zNjk5OSAxMi42OSA0LjI5OTk5TDE1LjA2IDEuOTI5OTlDMTMuNjMgMC41Mzk5OTQgMTEuNDggLTAuMDIwMDA2IDkuMTggLTAuMDIwMDA2QzYuNjYgLTAuMDIwMDA2IDQuNDcgMS4xNzk5OSAzLjA1IDMuMDU5OTlMNS4xNCA1LjA4OTk5QzUuODggMy43MDk5OSA3LjIyIDIuODk5OTkgOS4xOCAyLjg5OTk5WiIgZmlsbD0iIzM0QTg1MyIvPgo8L3N2Zz4K" alt="Google Logo">
+                    Entrar com Google
+                </button>
+                <button id="logout-btn" style="display:none;">Sair</button>
+            </div>
+            <div id="auth-error-message" class="error-message" style="display:none;"></div>
+            <div class="alert-message">
+                <strong>Modo Nuvem (Firebase Ativo):</strong> A sua lista está a ser salva automaticamente na nuvem usando <strong>Login Google</strong>.
+                <br><em>Atenção: Ative o provedor Google no seu console do Firebase!</em>
+            </div>
         </div>
 
         <div id="app-content" class="loading-message disabled-overlay">
-            <p id="loading-text">Aguardando conexão segura...</p>
+            <p id="loading-text">Faça login para aceder à sua lista</p>
             
             <!-- Controlo de Ordenação -->
             <div id="sort-controls">
@@ -415,7 +469,8 @@
         // Importa as dependências do Firebase carregadas na janela
         const { 
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
-            onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot, collection, 
+            onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut,
+            getFirestore, doc, setDoc, onSnapshot, collection, 
             query, deleteDoc, getDoc, getDocs, setLogLevel
         } = window.firebaseDependencies;
         
@@ -436,6 +491,8 @@
         
         const userInfoDiv = document.getElementById('user-info');
         const authErrorMessageDiv = document.getElementById('auth-error-message');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
 
         const form = document.getElementById('form-item');
         const inputItem = document.getElementById('input-item');
@@ -494,16 +551,10 @@
 
         const getStoreRefs = (id) => {
             const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
-            // Padrão de segurança: /artifacts/{appId}/users/{userId} (4 segmentos: Document Ref)
+            // Padrão de segurança: /artifacts/{appId}/users/{userId}
             const userRoot = `/artifacts/${appId}/users/${id}`;
-            
-            // MUDANÇA: Usamos 5 segmentos para o Collection Ref (Coleção direta dentro do documento do utilizador)
-            // Fix: Referências de Collection devem ter número ímpar de segmentos.
-            listaAtivaRef = collection(db, `${userRoot}/ativa`); 
-            historicoRef = collection(db, `${userRoot}/historico`); 
-            
-            // 6 segmentos para o Document Ref (e.g., 'catalogo/precos')
-            // Referências de Documento devem ter número par de segmentos.
+            listaAtivaRef = collection(db, `${userRoot}/listas/ativa`);
+            historicoRef = collection(db, `${userRoot}/listas/arquivo`);
             catalogoRef = doc(db, `${userRoot}/catalogo/precos`);
         }
 
@@ -956,42 +1007,63 @@
                 
                 setLogLevel('debug');
                 
+                // Observador de estado de autenticação
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        // Usuário está logado
+                        userId = user.uid;
+                        getStoreRefs(userId);
+                        
+                        // Atualiza a UI
+                        userInfoDiv.innerHTML = `Logado como: ${user.displayName || user.email} <button id="logout-btn">Sair</button>`;
+                        authErrorMessageDiv.style.display = 'none';
+                        googleLoginBtn.style.display = 'none';
+                        
+                        // Habilita o CONTEÚDO
+                        appContent.classList.remove('disabled-overlay');
+                        loadingText.style.display = 'none';
+
+                        // Carrega os dados
+                        loadInitialData(true);
+                        
+                        // Adiciona evento ao botão de logout
+                        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+                    } else {
+                        // Usuário não está logado
+                        userId = null;
+                        userInfoDiv.innerHTML = 'Faça login para aceder à sua lista';
+                        googleLoginBtn.style.display = 'flex';
+                        logoutBtn.style.display = 'none';
+                        
+                        // Desabilita o conteúdo
+                        appContent.classList.add('disabled-overlay');
+                        loadingText.textContent = 'Faça login para aceder à sua lista';
+                        loadingText.style.display = 'block';
+                        
+                        // Limpa a lista
+                        listaCache = [];
+                        renderListaAtiva();
+                        renderHistorico([]);
+                    }
+                });
+                
+                // Inicialmente, tenta login com token customizado (Canvas) ou mostra o botão do Google
                 const customToken = window.__initial_auth_token;
                 
                 if (customToken) {
-                    // 1. Tenta Login com Custom Token (Ambiente Canvas)
-                    try {
-                        await signInWithCustomToken(auth, customToken);
-                    } catch(e) {
-                         // Se falhar (auth/custom-token-mismatch), ignora e faz Login Anónimo
-                        console.warn("Falha no token do ambiente, tentando login anónimo...");
-                        await signInAnonymously(auth);
-                    }
+                    // Login com Custom Token (Ambiente Canvas)
+                    await signInWithCustomToken(auth, customToken);
                 } else {
-                    // 2. Login Anónimo (GitHub Pages e produção)
-                    await signInAnonymously(auth);
+                    // Não há token custom, apenas mostra o botão de login com Google
+                    googleLoginBtn.addEventListener('click', handleGoogleLogin);
                 }
-                
-                // Sucesso na Autenticação Anónima
-                const user = auth.currentUser;
-                userId = user.uid;
-                getStoreRefs(userId);
-                
-                userInfoDiv.innerHTML = `Logado anonimamente. ID: ${userId.substring(0, 8)}...`;
-                authErrorMessageDiv.style.display = 'none';
-
-                // Habilita o CONTEÚDO
-                appContent.classList.remove('disabled-overlay');
-                loadingText.style.display = 'none';
-
-                loadInitialData(true); 
 
             } catch (error) {
                 console.error("[CONSOLE_ERROR] Erro fatal do Firebase:", error);
                 
                 // Trata o erro de Auth/Configuração
                 if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
-                    authErrorMessageDiv.innerHTML = `<strong>Erro de Configuração!</strong> Por favor, ative o método 'Anónimo' no seu console do Firebase.`;
+                    authErrorMessageDiv.innerHTML = `<strong>Erro de Configuração!</strong> Por favor, ative o método 'Google' no seu console do Firebase.`;
                     authErrorMessageDiv.style.display = 'block';
                 }
 
@@ -1002,6 +1074,27 @@
                 loadingText.style.display = 'block';
                 userInfoDiv.textContent = 'Modo Offline Ativo.';
                 loadInitialData(false);
+            }
+        }
+        
+        // Função para login com Google
+        async function handleGoogleLogin() {
+            try {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Erro no login com Google:", error);
+                authErrorMessageDiv.innerHTML = `<strong>Erro no login:</strong> ${error.message}`;
+                authErrorMessageDiv.style.display = 'block';
+            }
+        }
+        
+        // Função para logout
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Erro no logout:", error);
             }
         }
         
