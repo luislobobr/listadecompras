@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras 4.0 (Categorias e Ordenação)</title>
+    <title>Lista de Compras 4.1 (Login Redirect)</title>
     
     <!-- Configuração do Firebase Injetada -->
     <script type="module">
@@ -28,7 +28,8 @@
         import { 
             getAuth, 
             GoogleAuthProvider, 
-            signInWithPopup, 
+            signInWithRedirect, /* MUDANÇA: USANDO REDIRECT */
+            getRedirectResult, /* NOVO: Para capturar o resultado após o redirecionamento */
             signOut,
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -41,13 +42,13 @@
             query, 
             deleteDoc,
             getDoc,
-            getDocs // Importação adicionada para uso no arquivamento
+            getDocs 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // Atribui as importações a `window` para que o script principal possa aceder a elas
         window.firebaseDependencies = {
-            initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, 
+            initializeApp, getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, 
             signOut, onAuthStateChanged, getFirestore, doc, setDoc, 
             onSnapshot, collection, query, deleteDoc, getDoc, getDocs, setLogLevel
         };
@@ -427,8 +428,8 @@
     <script type="module">
         // Importa as dependências do Firebase carregadas na janela
         const { 
-            initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signOut, 
-            onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot, collection, 
+            initializeApp, getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, 
+            signOut, onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot, collection, 
             query, deleteDoc, getDoc, getDocs, setLogLevel
         } = window.firebaseDependencies;
         
@@ -964,6 +965,14 @@
                 auth = getAuth(app);
                 
                 setLogLevel('debug');
+                
+                // MUDANÇA CRUCIAL: Capturar o resultado do redirecionamento
+                const redirectResult = await getRedirectResult(auth);
+                if (redirectResult) {
+                    console.log("Resultado de redirecionamento de login recebido com sucesso.");
+                    // onAuthStateChanged será acionado logo após isso
+                }
+
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
@@ -1023,8 +1032,9 @@
             const provider = new GoogleAuthProvider();
             authErrorMessageDiv.style.display = 'none';
             try {
-                await signInWithPopup(auth, provider);
-                // onAuthStateChanged irá lidar com o sucesso
+                // MUDANÇA CRUCIAL: Usar Redirect em vez de Popup
+                // Isto fará com que a página seja redirecionada para o Google.
+                await signInWithRedirect(auth, provider);
             } catch (error) {
                 console.error("Erro ao fazer login com Google:", error);
 
@@ -1035,7 +1045,7 @@
                         Domínios Autorizados nas **Configurações de Autenticação** do seu projeto Firebase.
                     `;
                     authErrorMessageDiv.style.display = 'block';
-                } else if (error.code !== 'auth/popup-closed-by-user') {
+                } else {
                     authErrorMessageDiv.innerHTML = `<strong>Erro de Login:</strong> ${error.message}`;
                     authErrorMessageDiv.style.display = 'block';
                 }
