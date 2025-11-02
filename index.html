@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras 4.2</title>
+    <title>Lista de Compras 4.2 - Listas Separadas</title>
     
     <!-- Firebase App + Auth + Firestore -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
     
     <style>
-        /* Estilos mantidos do código original */
+        /* Estilos base mantidos */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #eef2f5;
@@ -29,7 +29,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
             box-sizing: border-box;
         }
 
@@ -40,6 +40,7 @@
             font-size: 1.8em;
         }
 
+        /* Área de Autenticação */
         #auth-status {
             text-align: center;
             margin-bottom: 20px;
@@ -72,6 +73,7 @@
             text-align: left;
         }
 
+        /* Botões de Login/Logout */
         #google-login-btn {
             background-color: #4285F4;
             color: white;
@@ -110,6 +112,126 @@
             background-color: #ea580c;
         }
 
+        /* Controles de Modo e Orçamento */
+        .controles-superiores {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .modos-compra {
+            display: flex;
+            gap: 5px;
+            background: #f8fafc;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .modo-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+            background: transparent;
+        }
+
+        .modo-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .controle-orcamento {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        #orcamento-input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+
+        .status-orcamento {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-dentro {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-alerta {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-excedido {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Abas das Listas */
+        .abas-listas {
+            display: flex;
+            margin-bottom: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .aba {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .aba.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .aba-rapida.active {
+            border-left: 4px solid #10b981;
+        }
+
+        .aba-mercado.active {
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* Conteúdo das Listas */
+        .conteudo-lista {
+            display: none;
+        }
+
+        .conteudo-lista.active {
+            display: block;
+        }
+
+        .info-lista {
+            font-size: 0.9em;
+            color: #6b7280;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+
+        /* Formulário de Adição */
         #form-item {
             display: grid;
             grid-template-columns: 1fr 100px;
@@ -172,6 +294,43 @@
             background-color: #059669;
         }
 
+        /* Área de Favoritos */
+        .favoritos-area {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fff7ed;
+            border-radius: 8px;
+            border: 1px dashed #fdba74;
+        }
+
+        .favoritos-titulo {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #ea580c;
+            margin-bottom: 8px;
+        }
+
+        .lista-favoritos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .favorito-btn {
+            padding: 6px 10px;
+            background: white;
+            border: 1px solid #fdba74;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s;
+        }
+
+        .favorito-btn:hover {
+            background: #ffedd5;
+        }
+
+        /* Controlo de Ordenação */
         #sort-controls {
             display: flex;
             justify-content: flex-end;
@@ -187,6 +346,7 @@
             margin-left: 5px;
         }
 
+        /* Lista de Compras */
         #lista-compras {
             list-style: none;
             padding: 0;
@@ -258,6 +418,7 @@
             background-color: #dc2626;
         }
 
+        /* Área de Total */
         .total-area {
             text-align: right;
             margin-top: 15px;
@@ -267,18 +428,40 @@
             color: #1e3a8a;
         }
 
-        #arquivar-btn {
-            width: 100%;
-            background-color: #f97316;
+        /* Botões de Ação */
+        .botoes-acao {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
-            border-radius: 6px;
+        }
+
+        .acao-btn {
+            flex: 1;
             padding: 12px;
+            border: none;
+            border-radius: 6px;
             font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #arquivar-btn {
+            background-color: #f97316;
+            color: white;
         }
         #arquivar-btn:hover {
             background-color: #ea580c;
         }
-        
+
+        #transferir-btn {
+            background-color: #8b5cf6;
+            color: white;
+        }
+        #transferir-btn:hover {
+            background-color: #7c3aed;
+        }
+
+        /* Histórico */
         .historico {
             margin-top: 30px;
             padding-top: 20px;
@@ -328,6 +511,17 @@
             filter: blur(2px);
             transition: opacity 0.5s;
         }
+
+        /* Estilos específicos por modo */
+        .modo-rapido .conteudo-lista {
+            border-left: 3px solid #10b981;
+            padding-left: 10px;
+        }
+
+        .modo-mercado .conteudo-lista {
+            border-left: 3px solid #3b82f6;
+            padding-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -344,50 +538,131 @@
                 <button id="logout-btn" style="display:none;">Sair</button>
             </div>
             <div id="auth-error-message" class="error-message" style="display:none;"></div>
-            <div class="alert-message">
-                <strong>Modo Nuvem (Firebase Ativo):</strong> A sua lista está a ser salva automaticamente na nuvem usando <strong>Login Google</strong>.
-            </div>
         </div>
 
         <div id="app-content" class="loading-message disabled-overlay">
             <p id="loading-text">Faça login para aceder à sua lista</p>
             
-            <div id="sort-controls">
-                <span>Ordenar por:</span>
-                <select id="sort-select">
-                    <option value="adicao">Ordem de Inclusão</option>
-                    <option value="categoria">Categoria (Corredor)</option>
-                </select>
+            <!-- Controles Superiores -->
+            <div class="controles-superiores">
+                <div class="modos-compra">
+                    <button class="modo-btn active" data-modo="rapido">⚡ Rápido</button>
+                    <button class="modo-btn" data-modo="mercado">🏪 Mercado</button>
+                </div>
+                
+                <div class="controle-orcamento">
+                    <span>Orçamento:</span>
+                    <input type="number" id="orcamento-input" placeholder="0.00" step="0.01" min="0">
+                    <span id="status-orcamento" class="status-orcamento status-dentro">-</span>
+                </div>
             </div>
 
-            <form id="form-item">
-                <div class="input-group">
-                    <div class="input-item-wrap">
-                        <input type="text" id="input-item" placeholder="Item (Ex: Arroz)" required list="catalog-suggestions">
+            <!-- Abas das Listas -->
+            <div class="abas-listas">
+                <div class="aba aba-rapida active" data-lista="rapida">
+                    🛍️ Lista Rápida
+                </div>
+                <div class="aba aba-mercado" data-lista="mercado">
+                    🏪 Lista do Mercado
+                </div>
+            </div>
+
+            <!-- Conteúdo da Lista Rápida -->
+            <div id="conteudo-rapida" class="conteudo-lista active">
+                <div class="info-lista">
+                    <strong>Lista Rápida:</strong> Itens do dia a dia que você compra com frequência. 
+                    Adicione rapidamente e depois transfira para a Lista do Mercado.
+                </div>
+
+                <!-- Área de Favoritos -->
+                <div class="favoritos-area">
+                    <div class="favoritos-titulo">⭐ Favoritos - Clique para adicionar</div>
+                    <div class="lista-favoritos" id="lista-favoritos">
+                        <!-- Favoritos serão carregados aqui -->
                     </div>
-                    <input type="number" id="input-quantity" placeholder="Qtd" value="1" min="1">
-                    <input type="number" id="input-preco" placeholder="Preço" step="0.01" min="0">
-                    <select id="input-categoria">
-                        <option value="">-- Categoria --</option>
+                </div>
+
+                <form id="form-item-rapida">
+                    <div class="input-group">
+                        <div class="input-item-wrap">
+                            <input type="text" id="input-item-rapida" placeholder="Item (Ex: Pão, Leite)" required list="catalog-suggestions">
+                        </div>
+                        <input type="number" id="input-quantity-rapida" placeholder="Qtd" value="1" min="1">
+                        <input type="number" id="input-preco-rapida" placeholder="Preço" step="0.01" min="0">
+                        <select id="input-categoria-rapida">
+                            <option value="">-- Categoria --</option>
+                        </select>
+                    </div>
+                    <button type="submit">Adicionar à Lista Rápida</button>
+                </form>
+
+                <div id="sort-controls-rapida" class="sort-controls">
+                    <span>Ordenar por:</span>
+                    <select id="sort-select-rapida">
+                        <option value="adicao">Ordem de Inclusão</option>
+                        <option value="categoria">Categoria</option>
                     </select>
                 </div>
-                <button type="submit">Adicionar</button>
-            </form>
 
-            <datalist id="catalog-suggestions"></datalist>
-            
-            <ul id="lista-compras">
-                <!-- Itens ativos serão adicionados aqui -->
-            </ul>
-            
-            <div class="total-area">
-                <strong>Total Atual:</strong> <span id="valor-total">R$ 0,00</span>
+                <ul id="lista-compras-rapida" class="lista-compras">
+                    <!-- Itens da lista rápida aqui -->
+                </ul>
+                
+                <div class="total-area">
+                    <strong>Total Lista Rápida:</strong> <span id="valor-total-rapida">R$ 0,00</span>
+                </div>
             </div>
 
-            <button id="arquivar-btn">Finalizar Compra e Arquivar</button>
+            <!-- Conteúdo da Lista do Mercado -->
+            <div id="conteudo-mercado" class="conteudo-lista">
+                <div class="info-lista">
+                    <strong>Lista do Mercado:</strong> Compra semanal ou mensal completa. 
+                    Organize por categorias e controle seu orçamento.
+                </div>
+
+                <form id="form-item-mercado">
+                    <div class="input-group">
+                        <div class="input-item-wrap">
+                            <input type="text" id="input-item-mercado" placeholder="Item para compra planejada" required list="catalog-suggestions">
+                        </div>
+                        <input type="number" id="input-quantity-mercado" placeholder="Qtd" value="1" min="1">
+                        <input type="number" id="input-preco-mercado" placeholder="Preço" step="0.01" min="0">
+                        <select id="input-categoria-mercado">
+                            <option value="">-- Categoria --</option>
+                        </select>
+                    </div>
+                    <button type="submit">Adicionar ao Mercado</button>
+                </form>
+
+                <div id="sort-controls-mercado" class="sort-controls">
+                    <span>Ordenar por:</span>
+                    <select id="sort-select-mercado">
+                        <option value="adicao">Ordem de Inclusão</option>
+                        <option value="categoria">Categoria (Corredor)</option>
+                    </select>
+                </div>
+
+                <ul id="lista-compras-mercado" class="lista-compras">
+                    <!-- Itens da lista do mercado aqui -->
+                </ul>
+                
+                <div class="total-area">
+                    <strong>Total Mercado:</strong> <span id="valor-total-mercado">R$ 0,00</span>
+                    <br>
+                    <small id="info-orcamento" style="color: #6b7280;"></small>
+                </div>
+            </div>
+
+            <datalist id="catalog-suggestions"></datalist>
+
+            <!-- Botões de Ação -->
+            <div class="botoes-acao">
+                <button id="transferir-btn" class="acao-btn">➡️ Transferir para Mercado</button>
+                <button id="arquivar-btn" class="acao-btn">✅ Finalizar Compra</button>
+            </div>
         
             <div class="historico">
-                <h2>Histórico de Compras</h2>
+                <h2>📊 Histórico de Compras</h2>
                 <ul class="historico-lista" id="historico-compras">
                     <!-- Histórico será adicionado aqui -->
                 </ul>
@@ -424,10 +699,27 @@
             { id: "Z99", nome: "Outros" }
         ];
 
+        // Produtos favoritos padrão
+        const FAVORITOS_PADRAO = [
+            { nome: "Pão", preco: 8.50, categoria: "B01" },
+            { nome: "Leite", preco: 5.20, categoria: "A02" },
+            { nome: "Ovos", preco: 15.00, categoria: "A02" },
+            { nome: "Café", preco: 18.90, categoria: "B01" },
+            { nome: "Arroz", preco: 25.50, categoria: "D01" },
+            { nome: "Feijão", preco: 7.80, categoria: "D01" },
+            { nome: "Frango", preco: 16.50, categoria: "C01" },
+            { nome: "Banana", preco: 6.50, categoria: "A01" }
+        ];
+
         // Variáveis globais
         let userId = null;
-        let listaCache = [];
+        let listaRapidaCache = [];
+        let listaMercadoCache = [];
         let catalogData = {};
+        let favoritosData = [];
+        let orcamentoAtual = 0;
+        let modoAtual = 'rapida'; // 'rapida' ou 'mercado'
+        let listaAtiva = 'rapida'; // Qual aba está ativa
 
         // Elementos DOM
         const appContent = document.getElementById('app-content');
@@ -435,26 +727,58 @@
         const userInfoDiv = document.getElementById('user-info');
         const authErrorMessageDiv = document.getElementById('auth-error-message');
         const googleLoginBtn = document.getElementById('google-login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const form = document.getElementById('form-item');
-        const inputItem = document.getElementById('input-item');
-        const inputPreco = document.getElementById('input-preco');
-        const inputQuantity = document.getElementById('input-quantity');
-        const inputCategoria = document.getElementById('input-categoria');
-        const listaUL = document.getElementById('lista-compras');
+        
+        // Elementos de controle
+        const modosCompra = document.querySelectorAll('.modo-btn');
+        const abasListas = document.querySelectorAll('.aba');
+        const orcamentoInput = document.getElementById('orcamento-input');
+        const statusOrcamento = document.getElementById('status-orcamento');
+        const infoOrcamento = document.getElementById('info-orcamento');
+
+        // Formulários
+        const formRapida = document.getElementById('form-item-rapida');
+        const formMercado = document.getElementById('form-item-mercado');
+        
+        // Inputs
+        const inputItemRapida = document.getElementById('input-item-rapida');
+        const inputPrecoRapida = document.getElementById('input-preco-rapida');
+        const inputQuantityRapida = document.getElementById('input-quantity-rapida');
+        const inputCategoriaRapida = document.getElementById('input-categoria-rapida');
+        
+        const inputItemMercado = document.getElementById('input-item-mercado');
+        const inputPrecoMercado = document.getElementById('input-preco-mercado');
+        const inputQuantityMercado = document.getElementById('input-quantity-mercado');
+        const inputCategoriaMercado = document.getElementById('input-categoria-mercado');
+
+        // Listas
+        const listaRapidaUL = document.getElementById('lista-compras-rapida');
+        const listaMercadoUL = document.getElementById('lista-compras-mercado');
+        const listaFavoritos = document.getElementById('lista-favoritos');
+
+        // Totais
+        const valorTotalRapida = document.getElementById('valor-total-rapida');
+        const valorTotalMercado = document.getElementById('valor-total-mercado');
+
+        // Botões de ação
+        const transferirBtn = document.getElementById('transferir-btn');
         const arquivarBtn = document.getElementById('arquivar-btn');
-        const valorTotalSpan = document.getElementById('valor-total');
+
+        // Outros
         const historicoUL = document.getElementById('historico-compras');
         const datalist = document.getElementById('catalog-suggestions');
-        const sortSelect = document.getElementById('sort-select');
 
-        // Preencher categorias
+        // ========== FUNÇÕES DE INICIALIZAÇÃO ==========
+
+        // Preencher categorias nos selects
         function populateCategorias() {
-            CATEGORIAS.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.id;
-                option.textContent = cat.nome;
-                inputCategoria.appendChild(option);
+            [inputCategoriaRapida, inputCategoriaMercado].forEach(select => {
+                select.innerHTML = '<option value="">-- Categoria --</option>';
+                CATEGORIAS.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.nome;
+                    select.appendChild(option);
+                });
             });
         }
 
@@ -463,7 +787,31 @@
             return `R$ ${parseFloat(value).toFixed(2).replace('.', ',')}`;
         }
 
-        // Funções de autenticação
+        // Detectar categoria automaticamente
+        function detectarCategoria(nomeItem) {
+            const nomeLower = nomeItem.toLowerCase();
+            
+            if (nomeLower.includes('leite') || nomeLower.includes('queijo') || nomeLower.includes('iogurte') || nomeLower.includes('manteiga')) {
+                return 'A02';
+            } else if (nomeLower.includes('pão') || nomeLower.includes('bolo') || nomeLower.includes('café') || nomeLower.includes('bolacha')) {
+                return 'B01';
+            } else if (nomeLower.includes('arroz') || nomeLower.includes('feijão') || nomeLower.includes('macarrão') || nomeLower.includes('óleo')) {
+                return 'D01';
+            } else if (nomeLower.includes('carne') || nomeLower.includes('frango') || nomeLower.includes('peixe') || nomeLower.includes('bife')) {
+                return 'C01';
+            } else if (nomeLower.includes('detergente') || nomeLower.includes('sabão') || nomeLower.includes('limpeza') || nomeLower.includes('água sanitária')) {
+                return 'E01';
+            } else if (nomeLower.includes('shampoo') || nomeLower.includes('sabonete') || nomeLower.includes('pasta') || nomeLower.includes('papel higiênico')) {
+                return 'E02';
+            } else if (nomeLower.includes('banana') || nomeLower.includes('maçã') || nomeLower.includes('laranja') || nomeLower.includes('tomate')) {
+                return 'A01';
+            } else {
+                return 'Z99';
+            }
+        }
+
+        // ========== FUNÇÕES DE AUTENTICAÇÃO ==========
+
         function handleGoogleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider)
@@ -505,35 +853,50 @@
                 userId = null;
                 userInfoDiv.innerHTML = 'Faça login para aceder à sua lista';
                 googleLoginBtn.style.display = 'flex';
-                logoutBtn.style.display = 'none';
                 
                 appContent.classList.add('disabled-overlay');
                 loadingText.textContent = 'Faça login para aceder à sua lista';
                 loadingText.style.display = 'block';
                 
-                listaCache = [];
-                renderListaAtiva();
+                listaRapidaCache = [];
+                listaMercadoCache = [];
+                renderListaRapida();
+                renderListaMercado();
                 renderHistorico([]);
             }
         });
 
-        // Carregar dados do usuário
+        // ========== FUNÇÕES DE CARREGAMENTO DE DADOS ==========
+
         function loadUserData() {
             if (!userId) return;
 
-            // Carregar lista ativa
-            db.collection('users').doc(userId).collection('listaAtiva')
+            // Carregar lista rápida
+            db.collection('users').doc(userId).collection('listaRapida')
                 .onSnapshot(snapshot => {
-                    listaCache = [];
+                    listaRapidaCache = [];
                     snapshot.forEach(doc => {
-                        listaCache.push({ id: doc.id, ...doc.data() });
+                        listaRapidaCache.push({ id: doc.id, ...doc.data() });
                     });
-                    renderListaAtiva();
+                    renderListaRapida();
+                    atualizarOrcamento();
+                });
+
+            // Carregar lista do mercado
+            db.collection('users').doc(userId).collection('listaMercado')
+                .onSnapshot(snapshot => {
+                    listaMercadoCache = [];
+                    snapshot.forEach(doc => {
+                        listaMercadoCache.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderListaMercado();
+                    atualizarOrcamento();
                 });
 
             // Carregar histórico
             db.collection('users').doc(userId).collection('historico')
                 .orderBy('data', 'desc')
+                .limit(10)
                 .onSnapshot(snapshot => {
                     const historico = [];
                     snapshot.forEach(doc => {
@@ -543,7 +906,7 @@
                 });
 
             // Carregar catálogo
-            db.collection('users').doc(userId).collection('catalogo').doc('precos')
+            db.collection('users').doc(userId).collection('config').doc('catalogo')
                 .get()
                 .then(doc => {
                     if (doc.exists) {
@@ -551,14 +914,38 @@
                         renderCatalogo();
                     }
                 });
+
+            // Carregar favoritos
+            db.collection('users').doc(userId).collection('config').doc('favoritos')
+                .get()
+                .then(doc => {
+                    if (doc.exists) {
+                        favoritosData = doc.data().itens || FAVORITOS_PADRAO;
+                    } else {
+                        favoritosData = FAVORITOS_PADRAO;
+                    }
+                    renderFavoritos();
+                });
+
+            // Carregar orçamento
+            db.collection('users').doc(userId).collection('config').doc('orcamento')
+                .get()
+                .then(doc => {
+                    if (doc.exists) {
+                        orcamentoAtual = doc.data().valor || 0;
+                        orcamentoInput.value = orcamentoAtual;
+                        atualizarOrcamento();
+                    }
+                });
         }
 
-        // Renderizar lista ativa
-        function renderListaAtiva() {
-            listaUL.innerHTML = '';
+        // ========== FUNÇÕES DE RENDERIZAÇÃO ==========
+
+        function renderListaRapida() {
+            listaRapidaUL.innerHTML = '';
             
-            const tipoOrdenacao = sortSelect.value;
-            let listaOrdenada = [...listaCache];
+            const tipoOrdenacao = document.getElementById('sort-select-rapida').value;
+            let listaOrdenada = [...listaRapidaCache];
 
             if (tipoOrdenacao === 'categoria') {
                 listaOrdenada.sort((a, b) => {
@@ -578,80 +965,103 @@
                     const header = document.createElement('div');
                     header.className = 'category-header';
                     header.textContent = catNome;
-                    listaUL.appendChild(header);
+                    listaRapidaUL.appendChild(header);
                 }
                 
-                const li = document.createElement('li');
-                li.setAttribute('data-id', item.id);
-                if (item.comprado) {
-                    li.classList.add('item-comprado');
-                }
+                const li = createListItem(item, 'rapida');
+                listaRapidaUL.appendChild(li);
 
                 const subtotal = parseFloat(item.preco) * parseInt(item.quantidade);
                 total += subtotal;
+            });
+            
+            valorTotalRapida.textContent = formatCurrency(total);
+        }
 
-                li.innerHTML = `
-                    <span class="item-name">${item.nome}</span>
-                    <span class="editable-quantity" contenteditable="true">${item.quantidade}</span>
-                    <span class="editable-price" contenteditable="true">${formatCurrency(item.preco)}</span>
-                    <button class="remover-item">X</button>
-                `;
+        function renderListaMercado() {
+            listaMercadoUL.innerHTML = '';
+            
+            const tipoOrdenacao = document.getElementById('sort-select-mercado').value;
+            let listaOrdenada = [...listaMercadoCache];
 
-                li.querySelector('.item-name').addEventListener('click', () => toggleComprado(item.id, !item.comprado));
-                li.querySelector('.remover-item').addEventListener('click', () => removeItem(item.id));
-                
-                li.querySelector('.editable-price').addEventListener('blur', (e) => {
-                    updateItem(item.id, 'preco', parseFloat(e.target.textContent.replace('R$', '').replace(',', '.')));
+            if (tipoOrdenacao === 'categoria') {
+                listaOrdenada.sort((a, b) => {
+                    const catA = a.categoria || 'Z99';
+                    const catB = b.categoria || 'Z99';
+                    return catA.localeCompare(catB);
                 });
+            }
+
+            let categoriaAtual = null;
+            let total = 0;
+
+            listaOrdenada.forEach(item => {
+                if (tipoOrdenacao === 'categoria' && item.categoria !== categoriaAtual) {
+                    categoriaAtual = item.categoria;
+                    const catNome = CATEGORIAS.find(c => c.id === categoriaAtual)?.nome || "Outros";
+                    const header = document.createElement('div');
+                    header.className = 'category-header';
+                    header.textContent = catNome;
+                    listaMercadoUL.appendChild(header);
+                }
                 
-                li.querySelector('.editable-quantity').addEventListener('blur', (e) => {
-                    updateItem(item.id, 'quantidade', parseInt(e.target.textContent));
+                const li = createListItem(item, 'mercado');
+                listaMercadoUL.appendChild(li);
+
+                const subtotal = parseFloat(item.preco) * parseInt(item.quantidade);
+                total += subtotal;
+            });
+            
+            valorTotalMercado.textContent = formatCurrency(total);
+            atualizarOrcamento();
+        }
+
+        function createListItem(item, tipoLista) {
+            const li = document.createElement('li');
+            li.setAttribute('data-id', item.id);
+            if (item.comprado) {
+                li.classList.add('item-comprado');
+            }
+
+            const catNome = CATEGORIAS.find(c => c.id === item.categoria)?.nome || 'Outros';
+
+            li.innerHTML = `
+                <span class="item-name" title="Categoria: ${catNome}">${item.nome}</span>
+                <span class="editable-quantity" contenteditable="true">${item.quantidade}</span>
+                <span class="editable-price" contenteditable="true">${formatCurrency(item.preco)}</span>
+                <button class="remover-item">X</button>
+            `;
+
+            li.querySelector('.item-name').addEventListener('click', () => 
+                toggleComprado(item.id, !item.comprado, tipoLista));
+            
+            li.querySelector('.remover-item').addEventListener('click', () => 
+                removeItem(item.id, tipoLista));
+            
+            li.querySelector('.editable-price').addEventListener('blur', (e) => {
+                updateItem(item.id, 'preco', parseFloat(e.target.textContent.replace('R$', '').replace(',', '.')), tipoLista);
+            });
+            
+            li.querySelector('.editable-quantity').addEventListener('blur', (e) => {
+                updateItem(item.id, 'quantidade', parseInt(e.target.textContent), tipoLista);
+            });
+
+            return li;
+        }
+
+        function renderFavoritos() {
+            listaFavoritos.innerHTML = '';
+            favoritosData.forEach(favorito => {
+                const btn = document.createElement('button');
+                btn.className = 'favorito-btn';
+                btn.textContent = favorito.nome;
+                btn.addEventListener('click', () => {
+                    adicionarFavoritoComoItem(favorito);
                 });
-
-                listaUL.appendChild(li);
-            });
-            
-            valorTotalSpan.textContent = formatCurrency(total);
-        }
-
-        // Funções de CRUD
-        function addItem(item) {
-            if (!userId) return;
-            
-            db.collection('users').doc(userId).collection('listaAtiva').add({
-                nome: item.nome,
-                preco: parseFloat(item.preco),
-                quantidade: parseInt(item.quantidade),
-                categoria: item.categoria,
-                comprado: false,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                listaFavoritos.appendChild(btn);
             });
         }
 
-        function updateItem(itemId, field, value) {
-            if (!userId) return;
-            
-            const updateData = {};
-            updateData[field] = value;
-            
-            db.collection('users').doc(userId).collection('listaAtiva').doc(itemId).update(updateData);
-        }
-
-        function toggleComprado(itemId, comprado) {
-            if (!userId) return;
-            
-            db.collection('users').doc(userId).collection('listaAtiva').doc(itemId).update({
-                comprado: comprado
-            });
-        }
-
-        function removeItem(itemId) {
-            if (!userId) return;
-            
-            db.collection('users').doc(userId).collection('listaAtiva').doc(itemId).delete();
-        }
-
-        // Renderizar catálogo
         function renderCatalogo() {
             datalist.innerHTML = '';
             Object.keys(catalogData).forEach(nome => {
@@ -661,13 +1071,13 @@
             });
         }
 
-        // Renderizar histórico
         function renderHistorico(historico) {
             historicoUL.innerHTML = '';
             
             historico.forEach(registro => {
                 const li = document.createElement('li');
-                const dataFormatada = new Date(registro.data.seconds * 1000).toLocaleDateString('pt-pt');
+                const data = registro.data?.toDate ? registro.data.toDate() : new Date(registro.data);
+                const dataFormatada = data.toLocaleDateString('pt-pt');
 
                 li.innerHTML = `
                     <div class="historico-header">
@@ -685,56 +1095,145 @@
             });
         }
 
-        // Event Listeners
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nomeItem = inputItem.value.trim();
-            const precoItem = parseFloat(inputPreco.value.replace(',', '.')) || 0;
-            const quantidadeItem = parseInt(inputQuantity.value) || 1;
-            const categoriaItem = inputCategoria.value;
+        // ========== FUNÇÕES DE CRUD ==========
 
-            if (nomeItem) {
-                addItem({
-                    nome: nomeItem,
-                    preco: precoItem,
-                    quantidade: quantidadeItem,
-                    categoria: categoriaItem
-                });
+        function addItem(item, tipoLista) {
+            if (!userId) return;
+            
+            const colecao = tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado';
+            
+            db.collection('users').doc(userId).collection(colecao).add({
+                nome: item.nome,
+                preco: parseFloat(item.preco),
+                quantidade: parseInt(item.quantidade),
+                categoria: item.categoria,
+                comprado: false,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
 
-                // Salvar no catálogo
-                if (userId) {
-                    catalogData[nomeItem] = { preco: precoItem, categoria: categoriaItem };
-                    db.collection('users').doc(userId).collection('catalogo').doc('precos').set({
-                        precos: catalogData
-                    }, { merge: true });
+        function updateItem(itemId, field, value, tipoLista) {
+            if (!userId) return;
+            
+            const colecao = tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado';
+            const updateData = {};
+            updateData[field] = value;
+            
+            db.collection('users').doc(userId).collection(colecao).doc(itemId).update(updateData);
+        }
+
+        function toggleComprado(itemId, comprado, tipoLista) {
+            if (!userId) return;
+            
+            const colecao = tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado';
+            
+            db.collection('users').doc(userId).collection(colecao).doc(itemId).update({
+                comprado: comprado
+            });
+        }
+
+        function removeItem(itemId, tipoLista) {
+            if (!userId) return;
+            
+            const colecao = tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado';
+            db.collection('users').doc(userId).collection(colecao).doc(itemId).delete();
+        }
+
+        function adicionarFavoritoComoItem(favorito) {
+            // Preenche o formulário ativo com os dados do favorito
+            if (listaAtiva === 'rapida') {
+                inputItemRapida.value = favorito.nome;
+                inputPrecoRapida.value = favorito.preco;
+                inputCategoriaRapida.value = favorito.categoria;
+                inputItemRapida.focus();
+            } else {
+                inputItemMercado.value = favorito.nome;
+                inputPrecoMercado.value = favorito.preco;
+                inputCategoriaMercado.value = favorito.categoria;
+                inputItemMercado.focus();
+            }
+        }
+
+        // ========== FUNÇÕES DE ORÇAMENTO ==========
+
+        function atualizarOrcamento() {
+            if (!userId) return;
+
+            const totalMercado = listaMercadoCache.reduce((sum, item) => {
+                return sum + (parseFloat(item.preco) * parseInt(item.quantidade));
+            }, 0);
+
+            orcamentoAtual = parseFloat(orcamentoInput.value) || 0;
+
+            // Atualizar status do orçamento
+            if (orcamentoAtual === 0) {
+                statusOrcamento.textContent = 'Não definido';
+                statusOrcamento.className = 'status-orcamento';
+                infoOrcamento.textContent = '';
+            } else {
+                const percentual = (totalMercado / orcamentoAtual) * 100;
+                
+                if (percentual <= 70) {
+                    statusOrcamento.textContent = `${percentual.toFixed(0)}%`;
+                    statusOrcamento.className = 'status-orcamento status-dentro';
+                } else if (percentual <= 90) {
+                    statusOrcamento.textContent = `${percentual.toFixed(0)}%`;
+                    statusOrcamento.className = 'status-orcamento status-alerta';
+                } else {
+                    statusOrcamento.textContent = `${percentual.toFixed(0)}%`;
+                    statusOrcamento.className = 'status-orcamento status-excedido';
                 }
 
-                inputItem.value = '';
-                inputPreco.value = '';
-                inputQuantity.value = '1';
-                inputCategoria.value = '';
-                inputItem.focus();
-                
-                renderCatalogo();
+                infoOrcamento.textContent = `Gasto: ${formatCurrency(totalMercado)} de ${formatCurrency(orcamentoAtual)}`;
             }
-        });
 
-        inputItem.addEventListener('input', () => {
-            const nomeItem = inputItem.value.trim();
-            const sugestao = catalogData[nomeItem];
-
-            if (sugestao) {
-                inputPreco.value = sugestao.preco;
-                inputCategoria.value = sugestao.categoria;
+            // Salvar orçamento
+            if (orcamentoAtual > 0) {
+                db.collection('users').doc(userId).collection('config').doc('orcamento').set({
+                    valor: orcamentoAtual
+                }, { merge: true });
             }
-        });
+        }
 
-        sortSelect.addEventListener('change', renderListaAtiva);
+        // ========== FUNÇÕES DE TRANSFERÊNCIA E AÇÃO ==========
 
-        arquivarBtn.addEventListener('click', () => {
-            if (listaCache.length === 0 || !userId) return;
+        function transferirParaMercado() {
+            if (listaRapidaCache.length === 0) {
+                alert('Não há itens na Lista Rápida para transferir!');
+                return;
+            }
 
-            const itensCompra = listaCache.map(item => ({
+            if (!confirm(`Transferir ${listaRapidaCache.length} itens da Lista Rápida para a Lista do Mercado?`)) {
+                return;
+            }
+
+            listaRapidaCache.forEach(item => {
+                // Adicionar à lista do mercado
+                db.collection('users').doc(userId).collection('listaMercado').add({
+                    nome: item.nome,
+                    preco: parseFloat(item.preco),
+                    quantidade: parseInt(item.quantidade),
+                    categoria: item.categoria,
+                    comprado: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Remover da lista rápida
+                db.collection('users').doc(userId).collection('listaRapida').doc(item.id).delete();
+            });
+
+            alert('Itens transferidos com sucesso!');
+        }
+
+        function arquivarCompra() {
+            const listaParaArquivar = listaAtiva === 'rapida' ? listaRapidaCache : listaMercadoCache;
+            
+            if (listaParaArquivar.length === 0) {
+                alert(`Não há itens na ${listaAtiva === 'rapida' ? 'Lista Rápida' : 'Lista do Mercado'} para arquivar!`);
+                return;
+            }
+
+            const itensCompra = listaParaArquivar.map(item => ({
                 nome: item.nome,
                 quantidade: item.quantidade,
                 precoUnitario: parseFloat(item.preco),
@@ -743,27 +1242,159 @@
             }));
 
             const totalGasto = itensCompra.reduce((sum, item) => sum + item.subtotal, 0);
+            const tipoLista = listaAtiva === 'rapida' ? 'rápida' : 'mercado';
 
             const registroArquivo = {
                 data: firebase.firestore.FieldValue.serverTimestamp(),
                 totalGasto: totalGasto,
-                itens: itensCompra
+                itens: itensCompra,
+                tipo: tipoLista,
+                orcamento: orcamentoAtual
             };
 
             // Adicionar ao histórico
             db.collection('users').doc(userId).collection('historico').add(registroArquivo);
 
-            // Limpar lista ativa
-            listaCache.forEach(item => {
-                db.collection('users').doc(userId).collection('listaAtiva').doc(item.id).delete();
+            // Limpar lista arquivada
+            const colecao = listaAtiva === 'rapida' ? 'listaRapida' : 'listaMercado';
+            listaParaArquivar.forEach(item => {
+                db.collection('users').doc(userId).collection(colecao).doc(item.id).delete();
+            });
+
+            alert(`Compra ${tipoLista} arquivada com sucesso! Total: ${formatCurrency(totalGasto)}`);
+        }
+
+        // ========== EVENT LISTENERS ==========
+
+        // Modos de compra
+        modosCompra.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modosCompra.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                modoAtual = btn.dataset.modo;
+                
+                // Atualizar interface conforme o modo
+                document.body.className = `modo-${modoAtual}`;
             });
         });
 
-        // Inicialização
+        // Abas das listas
+        abasListas.forEach(aba => {
+            aba.addEventListener('click', () => {
+                abasListas.forEach(a => a.classList.remove('active'));
+                aba.classList.add('active');
+                listaAtiva = aba.dataset.lista;
+
+                // Mostrar conteúdo da lista ativa
+                document.querySelectorAll('.conteudo-lista').forEach(conteudo => {
+                    conteudo.classList.remove('active');
+                });
+                document.getElementById(`conteudo-${listaAtiva}`).classList.add('active');
+            });
+        });
+
+        // Formulários
+        formRapida.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nomeItem = inputItemRapida.value.trim();
+            const precoItem = parseFloat(inputPrecoRapida.value.replace(',', '.')) || 0;
+            const quantidadeItem = parseInt(inputQuantityRapida.value) || 1;
+            const categoriaItem = inputCategoriaRapida.value || detectarCategoria(nomeItem);
+
+            if (nomeItem) {
+                addItem({
+                    nome: nomeItem,
+                    preco: precoItem,
+                    quantidade: quantidadeItem,
+                    categoria: categoriaItem
+                }, 'rapida');
+
+                // Salvar no catálogo se for novo item
+                if (!catalogData[nomeItem]) {
+                    catalogData[nomeItem] = { preco: precoItem, categoria: categoriaItem };
+                    db.collection('users').doc(userId).collection('config').doc('catalogo').set({
+                        precos: catalogData
+                    }, { merge: true });
+                    renderCatalogo();
+                }
+
+                // Limpar formulário
+                inputItemRapida.value = '';
+                inputPrecoRapida.value = '';
+                inputQuantityRapida.value = '1';
+                inputCategoriaRapida.value = '';
+                inputItemRapida.focus();
+            }
+        });
+
+        formMercado.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nomeItem = inputItemMercado.value.trim();
+            const precoItem = parseFloat(inputPrecoMercado.value.replace(',', '.')) || 0;
+            const quantidadeItem = parseInt(inputQuantityMercado.value) || 1;
+            const categoriaItem = inputCategoriaMercado.value || detectarCategoria(nomeItem);
+
+            if (nomeItem) {
+                addItem({
+                    nome: nomeItem,
+                    preco: precoItem,
+                    quantidade: quantidadeItem,
+                    categoria: categoriaItem
+                }, 'mercado');
+
+                // Salvar no catálogo se for novo item
+                if (!catalogData[nomeItem]) {
+                    catalogData[nomeItem] = { preco: precoItem, categoria: categoriaItem };
+                    db.collection('users').doc(userId).collection('config').doc('catalogo').set({
+                        precos: catalogData
+                    }, { merge: true });
+                    renderCatalogo();
+                }
+
+                // Limpar formulário
+                inputItemMercado.value = '';
+                inputPrecoMercado.value = '';
+                inputQuantityMercado.value = '1';
+                inputCategoriaMercado.value = '';
+                inputItemMercado.focus();
+            }
+        });
+
+        // Auto-complete de preço e categoria
+        [inputItemRapida, inputItemMercado].forEach(input => {
+            input.addEventListener('input', () => {
+                const nomeItem = input.value.trim();
+                const sugestao = catalogData[nomeItem];
+
+                if (sugestao) {
+                    if (input === inputItemRapida) {
+                        inputPrecoRapida.value = sugestao.preco;
+                        inputCategoriaRapida.value = sugestao.categoria;
+                    } else {
+                        inputPrecoMercado.value = sugestao.preco;
+                        inputCategoriaMercado.value = sugestao.categoria;
+                    }
+                }
+            });
+        });
+
+        // Orçamento
+        orcamentoInput.addEventListener('change', atualizarOrcamento);
+
+        // Ordenação
+        document.getElementById('sort-select-rapida').addEventListener('change', renderListaRapida);
+        document.getElementById('sort-select-mercado').addEventListener('change', renderListaMercado);
+
+        // Botões de ação
+        transferirBtn.addEventListener('click', transferirParaMercado);
+        arquivarBtn.addEventListener('click', arquivarCompra);
+
+        // ========== INICIALIZAÇÃO ==========
+
         googleLoginBtn.addEventListener('click', handleGoogleLogin);
         populateCategorias();
 
-        console.log("Aplicação inicializada com sucesso!");
+        console.log("Aplicação de Listas Separadas inicializada com sucesso!");
     </script>
 </body>
 </html>
