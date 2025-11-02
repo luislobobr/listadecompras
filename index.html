@@ -494,10 +494,16 @@
 
         const getStoreRefs = (id) => {
             const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
-            // Padrão de segurança: /artifacts/{appId}/users/{userId}
+            // Padrão de segurança: /artifacts/{appId}/users/{userId} (4 segmentos: Document Ref)
             const userRoot = `/artifacts/${appId}/users/${id}`;
-            listaAtivaRef = collection(db, `${userRoot}/listas/ativa`);
-            historicoRef = collection(db, `${userRoot}/listas/arquivo`);
+            
+            // MUDANÇA: Usamos 5 segmentos para o Collection Ref (Coleção direta dentro do documento do utilizador)
+            // Fix: Referências de Collection devem ter número ímpar de segmentos.
+            listaAtivaRef = collection(db, `${userRoot}/ativa`); 
+            historicoRef = collection(db, `${userRoot}/historico`); 
+            
+            // 6 segmentos para o Document Ref (e.g., 'catalogo/precos')
+            // Referências de Documento devem ter número par de segmentos.
             catalogoRef = doc(db, `${userRoot}/catalogo/precos`);
         }
 
@@ -950,12 +956,17 @@
                 
                 setLogLevel('debug');
                 
-                // MUDANÇA: Login Anónimo (Não precisamos mais de onAuthStateChanged complexo)
                 const customToken = window.__initial_auth_token;
                 
                 if (customToken) {
-                    // 1. Login com Custom Token (Ambiente Canvas)
-                    await signInWithCustomToken(auth, customToken);
+                    // 1. Tenta Login com Custom Token (Ambiente Canvas)
+                    try {
+                        await signInWithCustomToken(auth, customToken);
+                    } catch(e) {
+                         // Se falhar (auth/custom-token-mismatch), ignora e faz Login Anónimo
+                        console.warn("Falha no token do ambiente, tentando login anónimo...");
+                        await signInAnonymously(auth);
+                    }
                 } else {
                     // 2. Login Anónimo (GitHub Pages e produção)
                     await signInAnonymously(auth);
