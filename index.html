@@ -520,30 +520,45 @@
             font-weight: 700;
         }
 
-        .historico-lista li {
-            background-color: #f9fafb;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        .historico-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .historico-header {
-            display: flex;
-            justify-content: space-between;
+        .historico-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .historico-data {
             font-weight: bold;
             color: #1e3a8a;
             margin-bottom: 8px;
-            border-bottom: 2px dashed #e5e7eb;
-            padding-bottom: 8px;
-            font-size: 1.05em;
+            font-size: 1.1em;
         }
-
-        .historico-detalhe {
-            font-size: 1em;
-            color: #4b5563;
-            margin-left: 12px;
+        
+        .historico-total {
+            font-weight: bold;
+            color: #059669;
+            margin-top: 8px;
+            font-size: 1.1em;
+        }
+        
+        .historico-itens {
+            color: #6b7280;
             line-height: 1.5;
+        }
+        
+        .sem-historico {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+            font-style: italic;
         }
 
         .loading-message {
@@ -632,7 +647,7 @@
             <div id="user-info">Conectando ao Firebase...</div>
             <div id="auth-buttons">
                 <button id="google-login-btn">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTAwOUg5LjE4VjEwLjkxSDExLjQ4QzExLjI0IDExLjk3IDEwLjUzIDEyLjkyIDkuNDcgMTMuMzZMMTEuNTYgMTUuMzlDMTMuMTQgMTMuOTMgMTQuMDIgMTEuNTMgMTQuMDIgOC45OTk5OUMxNC4wMiA4LjQyOTk5IDEzLjk2IDcuODc5OTkgMTMuODQgNy4zNDk5OUwxNi41MSA5LjIwNDU1WiIgZmlsbD0iIzQyODVGMyIvPgo8cGF0aCBkPSJOS4xOCAxNy4wMkM2LjY2IDE3LjAyIDQuNDcgMTUuODIgMy4wNSAxMy45NEw1LjE0IDExLjkxQzUuODggMTMuMjkgNy4yMiAxNC4xIDkuMTggMTQuMUM5LjY2IDE0LjEgMTAuMTIgMTQuMDIgMTAuNTUgMTMuODdMMTIuNjQgMTUuOTBDMTEuNjMgMTYuNzMgMTAuNDggMTcuMDIgOS4xOCAxNy4wMloiIGZpbGw9IiMzNEE4NTMiLz4KPHBhdGggZD0iTTMuMDUgNi4wNTk5OUMzLjA1IDUuNjk5OTkgMy4xMSA1LjM0OTk5IDMuMjMgNC45OTk5OUwxLjE0IDIuOTY5OTlDMC41NCA0LjA0OTk5IDAuMTggNS4yNzk5OSAwLjE4IDYuNDk5OTlDMC4xOCA3LjcxOTk5IDAuNTQgOC45Mzk5OSAxLjE0IDEwLjAyTDMuMjMgNy45OTk5OUMzLjExIDcuNjQ5OTkgMy4wNSA3LjI5OTk5IDMuMDUgNi45Mzk5OVY2LjA1OTk5WiIgZmlsbD0iI0ZCQkMwNCIvPgo8cGF0aCBkPSJOS4xOCAyLjg5OTk5QzEwLjU1IDIuODk5OTkgMTEuNzYgMy4zNjk5OSAxMi42OSA0LjI5OTk5TDE1LjA2IDEuOTI5OTlDMTMuNjMgMC41Mzk5OTQgMTEuNDggLTAuMDIwMDA2IDkuMTggLTAuMDIwMDA2QzYuNjYgLTAuMDIwMDA2IDQuNDcgMS4xNzk5OSAzLjA1IDMuMDU5OTlMNS4xNCA1LjA4OTk5QzUuODggMy43MDk5OSA3LjIyIDIuODk5OTkgOS4xOCAyLjg5OTk5WiIgZmlsbD0iIzM0QTg1MyIvPgo8L3N2Zz4K" alt="Google Logo">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTAwOUg5LjE4VjEwLjkxSDExLjQ4QzExLjI0IDExLjk3IDEwLjUzIDEyLjkyIDkuNDcgMTMuMzZMMTEuNTYgMTUuMzlDMTMuMTQgMTMuOTMgMTQuMDIgMTEuNTMgMTQuMDIgOC45OTk5OUMxNC4wMiA4LjQyOTk5IDEzLjk2IDcuODc5OTkgMTMuODQgNy4zNDk5OUwxNi41MSA5LjIwNDU1WiIgZmlsbD0iIzQyODVGMyIvPgo8cGF0aCBkPSJNOS4xOCAxNy4wMkM2LjY2IDE3LjAyIDQuNDcgMTUuODIgMy4wNSAxMy45NEw1LjE0IDExLjkxQzUuODggMTMuMjkgNy4yMiAxNC4xIDkuMTggMTQuMUM5LjY2IDE0LjEgMTAuMTIgMTQuMDIgMTAuNTUgMTMuODdMMTIuNjQgMTUuOTBDMTEuNjMgMTYuNzMgMTAuNDggMTcuMDIgOS4xOCAxNy4wMloiIGZpbGw9IiMzNEE4NTMiLz4KPHBhdGggZD0iTTMuMDUgNi4wNTk5OUMzLjA1IDUuNjk5OTkgMy4xMSA1LjM0OTk5IDMuMjMgNC45OTk5OUwxLjE0IDIuOTY5OTlDMC41NCA0LjA0OTk5IDAuMTggNS4yNzk5OSAwLjE4IDYuNDk5OTlDMC4xOCA3LjcxOTk5IDAuNTQgOC45Mzk5OSAxLjE0IDEwLjAyTDMuMjMgNy45OTk5OUMzLjExIDcuNjQ5OTkgMy4wNSA3LjI5OTk5IDMuMDUgNi45Mzk5OVY2LjA1OTk5WiIgZmlsbD0iI0ZCQkMwNCIvPgo8cGF0aCBkPSJNOS4xOCAyLjg5OTk5QzEwLjU1IDIuODk5OTkgMTEuNzYgMy4zNjk5OSAxMi42OSA0LjI5OTk5TDE1LjA2IDEuOTI5OTlDMTMuNjMgMC41Mzk5OTQgMTEuNDggLTAuMDIwMDA2IDkuMTggLTAuMDIwMDA2QzYuNjYgLTAuMDIwMDA2IDQuNDcgMS4xNzk5OSAzLjA1IDMuMDU5OTlMNS4xNCA1LjA4OTk5QzUuODggMy43MDk5OSA3LjIyIDIuODk5OTkgOS4xOCAyLjg5OTk5WiIgZmlsbD0iIzM0QTg1MyIvPgo8L3N2Zz4K" alt="Google Logo">
                     Entrar com Google
                 </button>
                 <button id="logout-btn" style="display:none;">Sair</button>
@@ -749,7 +764,9 @@
         
             <div class="historico">
                 <h2>📊 Histórico de Compras</h2>
-                <ul class="historico-lista" id="historico-compras"></ul>
+                <div id="historico-compras" class="historico-lista">
+                    <div class="sem-historico">Nenhuma compra arquivada ainda</div>
+                </div>
             </div>
         </div>
     </div>
@@ -764,26 +781,6 @@
             messagingSenderId: "226215342595",
             appId: "1:226215342595:web:63267d7d6361d809709436"
         };
-
-        // ========== INICIALIZAÇÃO FIREBASE ==========
-        let auth, db, userId = null;
-        let isOnline = true;
-
-        try {
-            // Inicializar Firebase
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.firestore();
-            
-            console.log("✅ Firebase inicializado com sucesso!");
-            document.getElementById('firebase-status').innerHTML = 
-                '<strong>✅ Firebase Conectado!</strong> Faça login para sincronizar seus dados.';
-            
-        } catch (error) {
-            console.error("❌ Erro ao inicializar Firebase:", error);
-            document.getElementById('firebase-status').innerHTML = 
-                '<strong>❌ Erro no Firebase:</strong> ' + error.message;
-        }
 
         // ========== CONFIGURAÇÃO DA APLICAÇÃO ==========
         const CATEGORIAS = [
@@ -809,12 +806,32 @@
             { nome: "Banana", preco: 6.50, categoria: "A01" }
         ];
 
+        // ========== INICIALIZAÇÃO FIREBASE ==========
+        let auth, db, userId = null;
+        let isOnline = true;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            
+            console.log("✅ Firebase inicializado com sucesso!");
+            document.getElementById('firebase-status').innerHTML = 
+                '<strong>✅ Firebase Conectado!</strong> Faça login para sincronizar seus dados.';
+            
+        } catch (error) {
+            console.error("❌ Erro ao inicializar Firebase:", error);
+            document.getElementById('firebase-status').innerHTML = 
+                '<strong>❌ Erro no Firebase:</strong> ' + error.message;
+        }
+
         // ========== VARIÁVEIS GLOBAIS ==========
         let listaRapidaCache = [];
         let listaMercadoCache = [];
         let catalogData = {};
         let orcamentoAtual = 0;
         let listaAtiva = 'rapida';
+        let historicoCache = [];
 
         // ========== FUNÇÕES FIREBASE ==========
         async function salvarNoFirebase(colecao, dados) {
@@ -835,7 +852,6 @@
             } catch (error) {
                 console.error("❌ Erro ao salvar no Firebase:", error);
                 atualizarStatusSync(false);
-                // Fallback para localStorage
                 salvarDadosLocais();
                 throw error;
             }
@@ -875,6 +891,91 @@
             }
         }
 
+        // ========== FUNÇÕES FIREBASE - HISTÓRICO ==========
+        async function salvarHistoricoFirebase(dadosCompra) {
+            if (!userId || !db) {
+                console.log("⚠️  Usuário não logado, salvando histórico localmente");
+                salvarHistoricoLocal(dadosCompra);
+                return null;
+            }
+
+            try {
+                const resultado = await db.collection('users').doc(userId).collection('historico').add({
+                    ...dadosCompra,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("✅ Histórico salvo no Firebase:", dadosCompra.total);
+                atualizarStatusSync(true);
+                return resultado.id;
+            } catch (error) {
+                console.error("❌ Erro ao salvar histórico no Firebase:", error);
+                atualizarStatusSync(false);
+                salvarHistoricoLocal(dadosCompra);
+                throw error;
+            }
+        }
+
+        function setupHistoricoListener() {
+            if (!userId || !db) return;
+
+            db.collection('users').doc(userId).collection('historico')
+                .orderBy('timestamp', 'desc')
+                .limit(20)
+                .onSnapshot((snapshot) => {
+                    historicoCache = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        historicoCache.push({ 
+                            id: doc.id, 
+                            ...data,
+                            timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
+                        });
+                    });
+                    renderHistorico();
+                    atualizarStatusSync(true);
+                }, (error) => {
+                    console.error("❌ Erro listener histórico:", error);
+                    atualizarStatusSync(false);
+                });
+        }
+
+        // ========== FUNÇÕES LOCAIS ==========
+        function carregarDadosLocais() {
+            listaRapidaCache = JSON.parse(localStorage.getItem('listaRapida')) || [];
+            listaMercadoCache = JSON.parse(localStorage.getItem('listaMercado')) || [];
+            catalogData = JSON.parse(localStorage.getItem('catalogo')) || {};
+            orcamentoAtual = parseFloat(localStorage.getItem('orcamento')) || 0;
+            
+            document.getElementById('orcamento-input').value = orcamentoAtual;
+        }
+
+        function salvarDadosLocais() {
+            localStorage.setItem('listaRapida', JSON.stringify(listaRapidaCache));
+            localStorage.setItem('listaMercado', JSON.stringify(listaMercadoCache));
+            localStorage.setItem('catalogo', JSON.stringify(catalogData));
+            localStorage.setItem('orcamento', orcamentoAtual.toString());
+        }
+
+        function salvarHistoricoLocal(dadosCompra) {
+            let historico = JSON.parse(localStorage.getItem('historicoCompras')) || [];
+            historico.unshift({
+                id: Date.now().toString(),
+                ...dadosCompra,
+                timestamp: new Date()
+            });
+            
+            historico = historico.slice(0, 20);
+            localStorage.setItem('historicoCompras', JSON.stringify(historico));
+            historicoCache = historico;
+            renderHistorico();
+        }
+
+        function carregarHistoricoLocal() {
+            historicoCache = JSON.parse(localStorage.getItem('historicoCompras')) || [];
+            renderHistorico();
+        }
+
+        // ========== FUNÇÕES FIREBASE LISTENERS ==========
         function setupFirebaseListeners() {
             if (!userId || !db) return;
 
@@ -906,7 +1007,7 @@
                     atualizarStatusSync(false);
                 });
 
-            // Carregar configurações
+            // Configurações
             carregarConfiguracoesFirebase();
         }
 
@@ -914,13 +1015,11 @@
             if (!userId || !db) return;
 
             try {
-                // Carregar catálogo
                 const catalogoDoc = await db.collection('users').doc(userId).collection('configuracoes').doc('catalogo').get();
                 if (catalogoDoc.exists) {
                     catalogData = catalogoDoc.data().precos || {};
                 }
 
-                // Carregar orçamento
                 const orcamentoDoc = await db.collection('users').doc(userId).collection('configuracoes').doc('orcamento').get();
                 if (orcamentoDoc.exists) {
                     orcamentoAtual = orcamentoDoc.data().valor || 0;
@@ -941,13 +1040,11 @@
             if (!userId || !db) return;
 
             try {
-                // Salvar catálogo
                 await db.collection('users').doc(userId).collection('configuracoes').doc('catalogo').set({
                     precos: catalogData,
                     ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                // Salvar orçamento
                 await db.collection('users').doc(userId).collection('configuracoes').doc('orcamento').set({
                     valor: orcamentoAtual,
                     ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
@@ -974,37 +1071,19 @@
             }
         }
 
-        // ========== FUNÇÕES LOCAIS (FALLBACK) ==========
-        function carregarDadosLocais() {
-            listaRapidaCache = JSON.parse(localStorage.getItem('listaRapida')) || [];
-            listaMercadoCache = JSON.parse(localStorage.getItem('listaMercado')) || [];
-            catalogData = JSON.parse(localStorage.getItem('catalogo')) || {};
-            orcamentoAtual = parseFloat(localStorage.getItem('orcamento')) || 0;
-            
-            document.getElementById('orcamento-input').value = orcamentoAtual;
-        }
-
-        function salvarDadosLocais() {
-            localStorage.setItem('listaRapida', JSON.stringify(listaRapidaCache));
-            localStorage.setItem('listaMercado', JSON.stringify(listaMercadoCache));
-            localStorage.setItem('catalogo', JSON.stringify(catalogData));
-            localStorage.setItem('orcamento', orcamentoAtual.toString());
-        }
-
         // ========== FUNÇÕES PRINCIPAIS ==========
         function carregarDados() {
             if (userId && db) {
-                // Usar Firebase se logado
                 setupFirebaseListeners();
+                setupHistoricoListener();
             } else {
-                // Usar localStorage
                 carregarDadosLocais();
+                carregarHistoricoLocal();
                 renderListaRapida();
                 renderListaMercado();
                 renderFavoritos();
                 renderCatalogo();
                 atualizarOrcamento();
-                renderHistorico();
             }
         }
 
@@ -1058,10 +1137,8 @@
             const li = document.createElement('li');
             if (item.comprado) li.classList.add('item-comprado');
 
-            const catNome = CATEGORIAS.find(c => c.id === item.categoria)?.nome || 'Outros';
-
             li.innerHTML = `
-                <span class="item-name" title="Categoria: ${catNome}">${item.nome}</span>
+                <span class="item-name">${item.nome}</span>
                 <span class="editable-quantity" contenteditable="true">${item.quantidade}</span>
                 <span class="editable-price" contenteditable="true">${formatCurrency(item.preco)}</span>
                 <button class="remover-item">X</button>
@@ -1099,7 +1176,40 @@
         }
 
         function renderHistorico() {
-            // Implementar histórico do Firebase se necessário
+            const container = document.getElementById('historico-compras');
+            
+            if (historicoCache.length === 0) {
+                container.innerHTML = '<div class="sem-historico">Nenhuma compra arquivada ainda</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            historicoCache.forEach(compra => {
+                const item = document.createElement('div');
+                item.className = 'historico-item';
+                
+                const data = compra.timestamp instanceof Date ? compra.timestamp : new Date(compra.timestamp);
+                const dataFormatada = data.toLocaleDateString('pt-PT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const itensTexto = compra.itens.map(item => 
+                    `${item.quantidade}x ${item.nome} - ${formatCurrency(item.preco * item.quantidade)}`
+                ).join('<br>');
+                
+                item.innerHTML = `
+                    <div class="historico-data">📅 ${dataFormatada}</div>
+                    <div class="historico-itens">${itensTexto}</div>
+                    <div class="historico-total">Total: ${formatCurrency(compra.total)}</div>
+                `;
+                
+                container.appendChild(item);
+            });
         }
 
         // ========== FUNÇÕES DE CRUD ==========
@@ -1115,7 +1225,6 @@
             try {
                 const itemId = await salvarNoFirebase(tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado', novoItem);
                 
-                // Atualizar cache local apenas se Firebase falhar
                 if (!itemId) {
                     novoItem.id = Date.now().toString();
                     novoItem.timestamp = Date.now();
@@ -1129,14 +1238,12 @@
                     }
                 }
 
-                // Atualizar catálogo
                 catalogData[item.nome] = { preco: item.preco, categoria: novoItem.categoria };
                 await salvarConfiguracoesFirebase();
                 renderCatalogo();
                 
             } catch (error) {
                 console.error("Erro ao adicionar item:", error);
-                // Fallback para localStorage
                 novoItem.id = Date.now().toString();
                 novoItem.timestamp = Date.now();
                 
@@ -1174,7 +1281,6 @@
                 itemId
             );
             
-            // Atualizar cache local
             if (tipoLista === 'rapida') {
                 listaRapidaCache = listaRapidaCache.filter(i => i.id !== itemId);
                 renderListaRapida();
@@ -1234,7 +1340,6 @@
 
             orcamentoAtual = parseFloat(document.getElementById('orcamento-input').value) || 0;
             
-            // Salvar orçamento
             if (userId) {
                 salvarConfiguracoesFirebase();
             } else {
@@ -1285,7 +1390,6 @@
                         comprado: false
                     });
                     
-                    // Remover da lista rápida
                     await removerDoFirebase('listaRapida', item.id);
                 }
             }
@@ -1302,15 +1406,38 @@
                 return;
             }
 
-            // Remover itens comprados do Firebase
-            for (const item of itensComprados) {
-                await removerDoFirebase(
-                    listaAtiva === 'rapida' ? 'listaRapida' : 'listaMercado',
-                    item.id
-                );
-            }
+            const total = itensComprados.reduce((sum, item) => {
+                return sum + (parseFloat(item.preco) * parseInt(item.quantidade));
+            }, 0);
 
-            alert(`✅ ${itensComprados.length} itens arquivados!`);
+            const dadosCompra = {
+                tipo: listaAtiva === 'rapida' ? 'Lista Rápida' : 'Lista do Mercado',
+                itens: itensComprados.map(item => ({
+                    nome: item.nome,
+                    preco: parseFloat(item.preco),
+                    quantidade: parseInt(item.quantidade),
+                    categoria: item.categoria
+                })),
+                total: total,
+                quantidadeItens: itensComprados.length
+            };
+
+            try {
+                await salvarHistoricoFirebase(dadosCompra);
+
+                for (const item of itensComprados) {
+                    await removerDoFirebase(
+                        listaAtiva === 'rapida' ? 'listaRapida' : 'listaMercado',
+                        item.id
+                    );
+                }
+
+                alert(`✅ ${itensComprados.length} itens arquivados no histórico!`);
+                
+            } catch (error) {
+                console.error("Erro ao arquivar compra:", error);
+                alert("⚠️  Compra arquivada localmente (erro na sincronização)");
+            }
         }
 
         // ========== AUTENTICAÇÃO ==========
@@ -1322,7 +1449,6 @@
             const appContent = document.getElementById('app-content');
             const loadingText = document.getElementById('loading-text');
 
-            // Login Google
             googleLoginBtn.addEventListener('click', async () => {
                 try {
                     const provider = new firebase.auth.GoogleAuthProvider();
@@ -1334,12 +1460,6 @@
                 }
             });
 
-            // Logout
-            logoutBtn.addEventListener('click', () => {
-                auth.signOut();
-            });
-
-            // Observador de autenticação
             auth.onAuthStateChanged((user) => {
                 if (user) {
                     userId = user.uid;
@@ -1350,12 +1470,10 @@
                     appContent.classList.remove('disabled-overlay');
                     loadingText.style.display = 'none';
 
-                    // Reconectar logout button
                     setTimeout(() => {
                         document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
                     }, 100);
 
-                    // Carregar dados do Firebase
                     carregarDados();
                     
                 } else {
@@ -1368,7 +1486,6 @@
                     loadingText.textContent = 'Faça login para aceder à sua lista';
                     loadingText.style.display = 'block';
 
-                    // Carregar dados locais
                     carregarDados();
                 }
             });
@@ -1376,7 +1493,6 @@
 
         // ========== EVENT LISTENERS ==========
         function setupEventListeners() {
-            // Abas
             document.querySelectorAll('.aba').forEach(aba => {
                 aba.addEventListener('click', (e) => {
                     document.querySelectorAll('.aba').forEach(a => a.classList.remove('active'));
@@ -1388,7 +1504,6 @@
                 });
             });
 
-            // Formulários
             document.getElementById('form-item-rapida').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const nome = document.getElementById('input-item-rapida').value.trim();
@@ -1417,7 +1532,6 @@
                 }
             });
 
-            // Auto-complete
             document.getElementById('input-item-rapida').addEventListener('input', function() {
                 const sugestao = catalogData[this.value];
                 if (sugestao) {
@@ -1434,17 +1548,13 @@
                 }
             });
 
-            // Orçamento
             document.getElementById('orcamento-input').addEventListener('change', atualizarOrcamento);
-
-            // Botões de ação
             document.getElementById('transferir-btn').addEventListener('click', transferirParaMercado);
             document.getElementById('arquivar-btn').addEventListener('click', arquivarCompra);
         }
 
         // ========== INICIALIZAÇÃO ==========
         function inicializar() {
-            // Preencher categorias
             const selects = ['input-categoria-rapida', 'input-categoria-mercado'];
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
@@ -1457,19 +1567,16 @@
                 });
             });
 
-            // Configurar auth e eventos
             if (auth) {
                 setupAuth();
             }
             setupEventListeners();
             
-            // Carregar dados iniciais (locais até login)
             carregarDados();
             
-            console.log("✅ Lista de Compras com Firebase inicializada!");
+            console.log("✅ Lista de Compras com Firebase e Histórico inicializada!");
         }
 
-        // Iniciar quando o DOM estiver pronto
         document.addEventListener('DOMContentLoaded', inicializar);
     </script>
 </body>
