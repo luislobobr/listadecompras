@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras 3.3 (Cloud e Google Auth)</title>
+    
+    <!-- Configuração do Firebase Injetada -->
+    <script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzaa9oat9DLxXBQs0VRa17VSKXk7y_Yko",
+            authDomain: "listadecompras-e6a90.firebaseapp.com",
+            projectId: "listadecompras-e6a90",
+            storageBucket: "listadecompras-e6a90.firebasestorage.app",
+            messagingSenderId: "259432208605",
+            appId: "1:259432208605:web:9e62e74ab7bb3be5dfe334"
+        };
+        
+        // Simulação das variáveis globais para o ambiente de execução
+        window.__firebase_config = JSON.stringify(firebaseConfig);
+        window.__app_id = firebaseConfig.projectId;
+        // Não precisamos de __initial_auth_token pois estamos a usar o Login Google
+    </script>
+
+    <!-- Importações do Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            signOut,
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            onSnapshot, 
+            collection, 
+            query, 
+            deleteDoc,
+            getDoc 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Atribui as importações a `window` para que o script principal possa aceder a elas
+        window.firebaseDependencies = {
+            initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, 
+            signOut, onAuthStateChanged, getFirestore, doc, setDoc, 
+            onSnapshot, collection, query, deleteDoc, getDoc, setLogLevel
+        };
+    </script>
+    
+    <style>
+        /* Estilos CSS adaptados para dispositivos móveis */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px 10px;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        /* Área de Autenticação */
+        #auth-status {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .auth-button:active {
+            transform: scale(0.99);
+        }
+
+        #login-btn {
+            background-color: #4285f4; /* Google Blue */
+            color: white;
+        }
+
+        #logout-btn {
+            background-color: #d1d5db; /* Gray */
+            color: #374151;
+        }
+
+        #user-info {
+            font-size: 0.9em;
+            color: #4b5563;
+            margin-top: 5px;
+            word-wrap: break-word;
+        }
+        
+        .error-message {
+            color: #dc2626;
+            background-color: #fee2e2;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            text-align: left;
+        }
+
+        /* Formulário de Adição */
+        #form-item {
+            display: grid;
+            grid-template-columns: 1fr 100px; /* Item/Preço/Qtd + Botão */
+            gap: 10px;
+            margin-bottom: 20px;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 5px;
+            grid-column: 1 / 2; /* Ocupa a primeira coluna */
+            margin-bottom: 10px;
+        }
+
+        #input-item, #input-preco, #input-quantity {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        
+        #input-item {
+            flex-grow: 3;
+            width: 100%;
+        }
+        #input-preco, #input-quantity {
+            flex-grow: 1;
+            width: auto;
+            max-width: 70px;
+            text-align: center;
+        }
+
+        #form-item button {
+            grid-column: 2 / 3; /* Ocupa a segunda coluna */
+            padding: 10px 15px;
+            border: none;
+            background-color: #10b981;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+            height: 40px;
+        }
+
+        #form-item button:hover {
+            background-color: #059669;
+        }
+
+        /* Lista de Compras */
+        #lista-compras {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #lista-compras li {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto; /* Nome | Qtd | Preço | Remover */
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 1em;
+            gap: 5px;
+        }
+
+        .item-name {
+            cursor: pointer;
+            transition: color 0.3s;
+            word-break: break-word;
+        }
+
+        .item-comprado .item-name {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+
+        .editable-price, .editable-quantity {
+            font-weight: bold;
+            color: #374151;
+            text-align: right;
+            cursor: pointer;
+            padding: 8px 5px; /* Aumenta a área de clique/toque */
+            min-width: 50px; 
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .editable-price:hover, .editable-quantity:hover {
+            background-color: #f3f4f6;
+        }
+
+        .remover-item {
+            background-color: #ef4444;
+            color: white;
+            padding: 5px 8px;
+            font-size: 0.8em;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .remover-item:hover {
+            background-color: #dc2626;
+        }
+
+        /* Área de Total */
+        .total-area {
+            text-align: right;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #ccc;
+            font-size: 1.2em;
+            color: #1e3a8a;
+        }
+
+        /* Botão Finalizar Compra */
+        #arquivar-btn {
+            width: 100%;
+            background-color: #f97316; /* Laranja */
+            margin-top: 20px;
+            border-radius: 6px;
+            padding: 12px;
+            font-weight: bold;
+        }
+        #arquivar-btn:hover {
+            background-color: #ea580c;
+        }
+        
+        /* Histórico */
+        .historico {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .historico h2 {
+            font-size: 1.4em;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+
+        .historico-lista li {
+            background-color: #f9fafb;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .historico-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #e5e7eb;
+            padding-bottom: 5px;
+            font-size: 0.95em;
+        }
+
+        .historico-detalhe {
+            font-size: 0.9em;
+            color: #4b5563;
+            margin-left: 10px;
+        }
+
+        .item-detalhe {
+            display: block;
+            margin-top: 3px;
+            margin-left: 5px;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+        
+        .disabled-overlay {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Minha Lista de Compras</h1>
+        
+        <div id="auth-status">
+            <div id="user-info">A carregar autenticação...</div>
+            <button id="login-btn" class="auth-button" style="display:none;">Entrar com Google</button>
+            <button id="logout-btn" class="auth-button" style="display:none;">Sair</button>
+            <div id="auth-error-message" class="error-message" style="display:none;"></div>
+        </div>
+
+        <div id="app-content" class="loading-message disabled-overlay">
+            <p id="loading-text">Aguardando login...</p>
+
+            <!-- Conteúdo da Aplicação -->
+            <form id="form-item">
+                <div class="input-group">
+                    <input type="text" id="input-item" placeholder="Item (Ex: Arroz)" required list="catalog-suggestions">
+                    <input type="number" id="input-quantity" placeholder="Qtd" value="1" min="1">
+                    <input type="number" id="input-preco" placeholder="Preço" step="0.01" min="0">
+                </div>
+                <button type="submit">Adicionar</button>
+            </form>
+
+            <datalist id="catalog-suggestions"></datalist>
+            
+            <ul id="lista-compras">
+                <!-- Itens ativos serão adicionados aqui -->
+            </ul>
+            
+            <div class="total-area">
+                <strong>Total Atual:</strong> <span id="valor-total">R$ 0,00</span>
+            </div>
+
+            <button id="arquivar-btn">Finalizar Compra e Arquivar</button>
+        
+            <div class="historico">
+                <h2>Histórico de Compras</h2>
+                <ul class="historico-lista" id="historico-compras">
+                    <!-- Histórico será adicionado aqui -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal com toda a lógica -->
+    <script type="module">
+        // Importa as dependências do Firebase carregadas na janela
+        const { 
+            initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signOut, 
+            onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot, collection, 
+            query, deleteDoc, getDoc, setLogLevel
+        } = window.firebaseDependencies;
+        
+        // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
+        const LOCAL_STORAGE_KEY_LISTA = 'shoppingList';
+        const LOCAL_STORAGE_KEY_ARQUIVO = 'shoppingArchive';
+        const LOCAL_STORAGE_KEY_CATALOGO = 'shoppingCatalog';
+
+        let db, auth, userId = null;
+        let listaAtivaRef, historicoRef, catalogoRef;
+        let totalAtual = 0;
+        
+        const catalogData = {}; // Catálogo persistente em memória
+        
+        const appContent = document.getElementById('app-content');
+        const loadingText = document.getElementById('loading-text');
+        
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userInfoDiv = document.getElementById('user-info');
+        const authErrorMessageDiv = document.getElementById('auth-error-message');
+
+        const form = document.getElementById('form-item');
+        const inputItem = document.getElementById('input-item');
+        const inputPreco = document.getElementById('input-preco');
+        const inputQuantity = document.getElementById('input-quantity');
+        const listaUL = document.getElementById('lista-compras');
+        const arquivarBtn = document.getElementById('arquivar-btn');
+        const valorTotalSpan = document.getElementById('valor-total');
+        const historicoUL = document.getElementById('historico-compras');
+        const datalist = document.getElementById('catalog-suggestions');
+        
+        // --- PRODUTOS INICIAIS (Catálogo Padrão) ---
+        const PRODUTOS_PADRAO = [
+            { nome: "Arroz (5kg)", preco: 25.50 }, { nome: "Feijão Preto (1kg)", preco: 7.80 },
+            { nome: "Leite Integral (1L)", preco: 5.20 }, { nome: "Café (500g)", preco: 18.90 },
+            { nome: "Pão de Forma", preco: 8.50 }, { nome: "Ovos (dúzia)", preco: 15.00 },
+            { nome: "Azeite (500ml)", preco: 32.00 }, { nome: "Manteiga", preco: 11.50 },
+            { nome: "Queijo Mussarela (200g)", preco: 14.00 }, { nome: "Frango (1kg)", preco: 16.50 },
+            { nome: "Maçã (kg)", preco: 8.00 }, { nome: "Banana (kg)", preco: 6.50 },
+            { nome: "Batata (kg)", preco: 5.00 }, { nome: "Tomate (kg)", preco: 9.50 },
+            { nome: "Detergente", preco: 3.50 }, { nome: "Sabão em Pó (1kg)", preco: 15.00 },
+            { nome: "Papel Higiénico (12uni)", preco: 20.00 }
+        ];
+
+        // --- FUNÇÕES DE PERSISTÊNCIA (Firestore/Local) ---
+
+        const getStoreRefs = (id) => {
+            const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
+            const userRoot = `/artifacts/${appId}/users/${id}`;
+            listaAtivaRef = collection(db, `${userRoot}/listas/ativa`);
+            historicoRef = collection(db, `${userRoot}/listas/arquivo`);
+            catalogoRef = doc(db, `${userRoot}/catalogo/precos`);
+        }
+
+        const loadFromLocal = (key) => {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.error("Erro ao carregar do Local Storage:", e);
+                return null;
+            }
+        };
+
+        const saveToLocal = (key, data) => {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error("Erro ao salvar no Local Storage:", e);
+            }
+        };
+        
+        // Função unificada de Load para Firestore ou LocalStorage
+        async function loadInitialData(isFirestore) {
+            listaUL.innerHTML = '';
+            historicoUL.innerHTML = '';
+            
+            if (isFirestore) {
+                // 1. Carregar Catálogo
+                const catalogSnap = await getDoc(catalogoRef);
+                const userCatalog = catalogSnap.exists() ? catalogSnap.data().precos : {};
+                Object.assign(catalogData, userCatalog);
+                
+                // 2. Carregar Lista Ativa
+                onSnapshot(listaAtivaRef, (snapshot) => {
+                    const lista = [];
+                    snapshot.forEach(doc => lista.push({ id: doc.id, ...doc.data() }));
+                    renderListaAtiva(lista);
+                });
+
+                // 3. Carregar Histórico
+                onSnapshot(historicoRef, (snapshot) => {
+                    const historico = [];
+                    snapshot.forEach(doc => historico.push({ id: doc.id, ...doc.data() }));
+                    renderHistorico(historico);
+                });
+            } else {
+                // FALLBACK: Local Storage
+                const lista = loadFromLocal(LOCAL_STORAGE_KEY_LISTA) || [];
+                const historico = loadFromLocal(LOCAL_STORAGE_KEY_ARQUIVO) || [];
+                const userCatalog = loadFromLocal(LOCAL_STORAGE_KEY_CATALOGO) || {};
+                Object.assign(catalogData, userCatalog);
+                
+                renderListaAtiva(lista);
+                renderHistorico(historico);
+                // Não há onSnapshot no LocalStorage, apenas load inicial
+            }
+             
+            // Renderiza o catálogo e as sugestões no datalist
+            renderCatalogo();
+        }
+        
+        // Salva o catálogo persistente (preços)
+        async function saveCatalog() {
+            if (db && userId) { // Verifica se há DB e utilizador logado
+                try {
+                    await setDoc(catalogoRef, { precos: catalogData }, { merge: true });
+                } catch(e) {
+                    console.error("Erro ao salvar catálogo no Firestore:", e);
+                }
+            } else {
+                saveToLocal(LOCAL_STORAGE_KEY_CATALOGO, catalogData);
+            }
+        }
+        
+        // --- FUNÇÕES DE RENDERIZAÇÃO E LÓGICA ---
+        
+        function formatCurrency(value) {
+            return `R$ ${parseFloat(value).toFixed(2).replace('.', ',')}`;
+        }
+
+        function updateItemSubtotal(item) {
+            return parseFloat(item.preco) * parseInt(item.quantidade);
+        }
+
+        function updateTotal() {
+            totalAtual = 0;
+            Array.from(listaUL.children).forEach(li => {
+                const itemData = JSON.parse(li.getAttribute('data-item'));
+                totalAtual += updateItemSubtotal(itemData);
+            });
+            valorTotalSpan.textContent = formatCurrency(totalAtual);
+        }
+
+        // Renderiza as sugestões do catálogo (padrão + usuário)
+        function renderCatalogo() {
+            datalist.innerHTML = '';
+            const allProducts = new Set(PRODUTOS_PADRAO.map(p => p.nome));
+
+            for (const nome in catalogData) {
+                allProducts.add(nome);
+            }
+
+            allProducts.forEach(nome => {
+                const option = document.createElement('option');
+                option.value = nome;
+                datalist.appendChild(option);
+            });
+        }
+        
+        // Persistência da lista ativa (Firestore ou Local)
+        async function persistListaAtiva() {
+            if (db) {
+                // No Firestore, onSnapshot lida com a renderização. 
+                // A persistência é feita via manipulação do Firestore.
+            } else {
+                // Local Storage: Salva o array de itens completo
+                const lista = Array.from(listaUL.children).map(li => JSON.parse(li.getAttribute('data-item')));
+                saveToLocal(LOCAL_STORAGE_KEY_LISTA, lista);
+                updateTotal();
+            }
+        }
+
+        // Renderiza a lista a partir de um array de dados
+        function renderListaAtiva(lista) {
+            listaUL.innerHTML = '';
+            lista.forEach(item => {
+                // Para itens carregados do storage/db, o ID será o doc.id. Para o LocalStorage, geramos um.
+                item.id = item.id || crypto.randomUUID();
+                const li = createListItem(item);
+                listaUL.appendChild(li);
+            });
+            updateTotal();
+        }
+
+        // Cria o elemento LI para a lista ativa
+        function createListItem(item) {
+            const li = document.createElement('li');
+            li.setAttribute('data-item', JSON.stringify(item));
+            li.setAttribute('data-id', item.id);
+            if (item.comprado) {
+                li.classList.add('item-comprado');
+            }
+
+            li.innerHTML = `
+                <span class="item-name">${item.nome}</span>
+                <span class="editable-quantity" contenteditable="true" data-field="quantidade">${item.quantidade}</span>
+                <span class="editable-price" contenteditable="true" data-field="preco">${formatCurrency(item.preco)}</span>
+                <button class="remover-item">X</button>
+            `;
+
+            // 1. Marcar como comprado (clique no nome)
+            li.querySelector('.item-name').addEventListener('click', () => toggleComprado(li));
+
+            // 2. Remoção
+            li.querySelector('.remover-item').addEventListener('click', () => removeItem(li));
+
+            // 3. Edição de Preço/Quantidade
+            li.querySelectorAll('.editable-price, .editable-quantity').forEach(span => {
+                span.addEventListener('blur', (e) => handleEdit(li, e));
+                span.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        e.target.blur();
+                    }
+                });
+            });
+
+            return li;
+        }
+        
+        // --- FUNÇÕES DE AÇÃO NA LISTA ---
+
+        async function toggleComprado(li) {
+            const item = JSON.parse(li.getAttribute('data-item'));
+            item.comprado = !item.comprado;
+            li.classList.toggle('item-comprado');
+            li.setAttribute('data-item', JSON.stringify(item));
+
+            if (db && item.id) {
+                try {
+                    await setDoc(doc(listaAtivaRef, item.id), { comprado: item.comprado }, { merge: true });
+                } catch(e) {
+                    console.error("Erro ao atualizar item no Firestore:", e);
+                }
+            } else {
+                persistListaAtiva();
+            }
+        }
+
+        async function removeItem(li) {
+            const itemId = li.getAttribute('data-id');
+            if (db && itemId) {
+                try {
+                    await deleteDoc(doc(listaAtivaRef, itemId));
+                } catch(e) {
+                    console.error("Erro ao remover item do Firestore:", e);
+                }
+            } else {
+                li.remove();
+                persistListaAtiva();
+            }
+        }
+        
+        // Lida com a edição de preço/quantidade na lista
+        async function handleEdit(li, event) {
+            const field = event.target.getAttribute('data-field');
+            let newValue = event.target.textContent.replace('R$', '').replace(',', '.').trim();
+            
+            let item = JSON.parse(li.getAttribute('data-item'));
+
+            if (field === 'preco') {
+                newValue = Math.max(0, parseFloat(newValue) || 0); // Garante que é número >= 0
+                item.preco = newValue.toFixed(2);
+                event.target.textContent = formatCurrency(item.preco);
+                
+                // Salva o novo preço no catálogo persistente
+                catalogData[item.nome] = item.preco;
+                await saveCatalog();
+
+            } else if (field === 'quantidade') {
+                newValue = Math.max(1, parseInt(newValue) || 1); // Garante que é inteiro >= 1
+                item.quantidade = newValue;
+                event.target.textContent = item.quantidade;
+            }
+
+            li.setAttribute('data-item', JSON.stringify(item));
+            
+            // Atualiza no Firestore ou Local Storage
+            const dataToUpdate = {};
+            dataToUpdate[field] = (field === 'preco') ? parseFloat(item.preco) : item.quantidade;
+            
+            if (db && item.id) {
+                try {
+                    await setDoc(doc(listaAtivaRef, item.id), dataToUpdate, { merge: true });
+                } catch(e) {
+                    console.error("Erro ao atualizar item no Firestore:", e);
+                }
+            } else {
+                persistListaAtiva();
+            }
+        }
+        
+        // Lida com o envio do formulário (Adicionar Item)
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nomeItem = inputItem.value.trim();
+            const precoItem = parseFloat(inputPreco.value.replace(',', '.')) || 0;
+            const quantidadeItem = parseInt(inputQuantity.value) || 1;
+
+            if (nomeItem) {
+                const novoItem = {
+                    nome: nomeItem,
+                    preco: precoItem.toFixed(2),
+                    quantidade: quantidadeItem,
+                    comprado: false,
+                    timestamp: Date.now()
+                };
+                
+                // 1. Salva/Atualiza o preço no catálogo persistente
+                catalogData[nomeItem] = novoItem.preco;
+                await saveCatalog();
+
+                // 2. Adiciona à lista ativa (Firestore ou Local Storage)
+                if (db) {
+                    try {
+                        // O Firestore gera o ID e o onSnapshot renderiza
+                        await setDoc(doc(listaAtivaRef), novoItem);
+                    } catch(e) {
+                        console.error("Erro ao adicionar item ao Firestore:", e);
+                    }
+                } else {
+                    // Local Storage: gera um ID e persiste
+                    novoItem.id = crypto.randomUUID();
+                    listaUL.appendChild(createListItem(novoItem));
+                    persistListaAtiva();
+                }
+
+                // Limpa o formulário
+                inputItem.value = '';
+                inputPreco.value = '';
+                inputQuantity.value = '1';
+                inputItem.focus();
+                
+                // Re-renderiza as sugestões após adicionar novo item/preço
+                renderCatalogo();
+            }
+        });
+        
+        // Lida com o preenchimento automático de preço
+        inputItem.addEventListener('input', () => {
+            const nomeItem = inputItem.value.trim();
+            // Verifica no catálogo do usuário, depois no catálogo padrão
+            const precoSugerido = catalogData[nomeItem] || PRODUTOS_PADRAO.find(p => p.nome === nomeItem)?.preco;
+
+            if (precoSugerido) {
+                inputPreco.value = parseFloat(precoSugerido).toFixed(2);
+            } else {
+                // Limpa se não encontrar sugestão
+                inputPreco.value = '';
+            }
+        });
+
+        // Arquiva a compra atual
+        arquivarBtn.addEventListener('click', async () => {
+            const itensCompra = Array.from(listaUL.children).map(li => {
+                const item = JSON.parse(li.getAttribute('data-item'));
+                return {
+                    nome: item.nome,
+                    quantidade: item.quantidade,
+                    precoUnitario: parseFloat(item.preco),
+                    subtotal: updateItemSubtotal(item)
+                };
+            });
+
+            if (itensCompra.length === 0) {
+                console.log("A lista está vazia, nada para arquivar.");
+                return;
+            }
+
+            const registroArquivo = {
+                data: new Date().toISOString(),
+                totalGasto: totalAtual,
+                itens: itensCompra
+            };
+
+            if (db) {
+                try {
+                    // 1. Adiciona ao Histórico (Firestore)
+                    await setDoc(doc(historicoRef), registroArquivo);
+                    // 2. Limpa a lista ativa (Firestore)
+                    
+                    // Método para limpar no Firestore: remover item por item
+                    const currentItems = await getDocs(query(listaAtivaRef)); // getDocs não foi importado
+                    
+                    // Como getDocs não foi importado, vamos usar o método manual mais simples:
+                    const itemIds = Array.from(listaUL.children).map(li => li.getAttribute('data-id'));
+                    const deletePromises = itemIds.map(id => deleteDoc(doc(listaAtivaRef, id)));
+                    await Promise.all(deletePromises);
+                    
+                } catch(e) {
+                    console.error("Erro ao arquivar no Firestore:", e);
+                }
+            } else {
+                // Local Storage
+                const historico = loadFromLocal(LOCAL_STORAGE_KEY_ARQUIVO) || [];
+                historico.unshift(registroArquivo); // Adiciona no início
+                saveToLocal(LOCAL_STORAGE_KEY_ARQUIVO, historico);
+                saveToLocal(LOCAL_STORAGE_KEY_LISTA, []); // Limpa lista ativa
+                
+                renderHistorico(historico);
+                listaUL.innerHTML = '';
+                updateTotal();
+            }
+        });
+
+        // Renderiza o histórico arquivado
+        function renderHistorico(historico) {
+            historicoUL.innerHTML = '';
+            historico.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            historico.forEach(registro => {
+                const li = document.createElement('li');
+                const dataFormatada = new Date(registro.data).toLocaleDateString('pt-pt');
+
+                li.innerHTML = `
+                    <div class="historico-header">
+                        <span>${dataFormatada}</span>
+                        <span>Total: ${formatCurrency(registro.totalGasto)}</span>
+                    </div>
+                    ${registro.itens.map(item => `
+                        <span class="historico-detalhe">
+                            ${item.nome} (${item.quantidade} uni) @ ${formatCurrency(item.precoUnitario)} = ${formatCurrency(item.subtotal)}
+                        </span>
+                    `).join('')}
+                `;
+                historicoUL.appendChild(li);
+            });
+        }
+        
+        // --- FUNÇÕES DE AUTENTICAÇÃO ---
+
+        async function initializeFirebase() {
+            try {
+                // Verifica a configuração do Firebase (que injetamos no head)
+                const firebaseConfig = JSON.parse(window.__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                setLogLevel('debug'); // Ativa logs de debug do Firestore
+
+                // Define o observador de estado de autenticação
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        // Utilizador logado
+                        userId = user.uid;
+                        getStoreRefs(userId); // Define as referências do Firestore
+                        
+                        userInfoDiv.innerHTML = `Logado como: ${user.displayName || user.email}`;
+                        loginBtn.style.display = 'none';
+                        logoutBtn.style.display = 'inline-block';
+                        authErrorMessageDiv.style.display = 'none';
+                        
+                        appContent.classList.remove('disabled-overlay');
+                        loadingText.style.display = 'none';
+
+                        // Carrega dados após o login
+                        loadInitialData(true); 
+
+                    } else {
+                        // Utilizador deslogado
+                        userId = null;
+                        userInfoDiv.textContent = 'Não logado.';
+                        loginBtn.style.display = 'inline-block';
+                        logoutBtn.style.display = 'none';
+                        authErrorMessageDiv.style.display = 'none';
+                        
+                        appContent.classList.add('disabled-overlay');
+                        loadingText.textContent = 'Por favor, inicie a sessão para carregar e salvar a sua lista na nuvem.';
+                        loadingText.style.display = 'block';
+
+                        // Limpa a UI e usa Local Storage (apenas para exibição)
+                        listaUL.innerHTML = '';
+                        historicoUL.innerHTML = '';
+                        updateTotal();
+                    }
+                });
+
+            } catch (error) {
+                console.error("[CONSOLE_ERROR] Erro ao inicializar Firebase (App ou Auth):", error);
+                
+                // Trata o erro de Auth/Configuração
+                if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+                    authErrorMessageDiv.innerHTML = `<strong>Erro de Configuração!</strong> Por favor, ative o método 'Google' no seu console do Firebase.`;
+                    authErrorMessageDiv.style.display = 'block';
+                } else {
+                    userInfoDiv.innerHTML = `<strong style="color: red;">Erro!</strong> Ocorreu um erro ao carregar o serviço de autenticação.`;
+                }
+
+                // FALLBACK: Se o Firebase falhar, usa Local Storage
+                loadInitialData(false);
+                appContent.classList.remove('disabled-overlay');
+                loadingText.style.display = 'none';
+            }
+        }
+        
+        // Login com Google
+        loginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            authErrorMessageDiv.style.display = 'none'; // Limpa erros anteriores
+            try {
+                await signInWithPopup(auth, provider);
+                // onAuthStateChanged irá lidar com o sucesso
+            } catch (error) {
+                console.error("Erro ao fazer login com Google:", error);
+
+                if (error.code === 'auth/unauthorized-domain') {
+                    authErrorMessageDiv.innerHTML = `
+                        <strong>Erro de Domínio Não Autorizado!</strong> Por favor, adicione o domínio 
+                        onde está a testar (ex: <code>seu-usuario.github.io</code>) à lista de 
+                        Domínios Autorizados nas **Configurações de Autenticação** do seu projeto Firebase.
+                    `;
+                    authErrorMessageDiv.style.display = 'block';
+                } else if (error.code !== 'auth/popup-closed-by-user') {
+                    authErrorMessageDiv.innerHTML = `<strong>Erro de Login:</strong> ${error.message}`;
+                    authErrorMessageDiv.style.display = 'block';
+                }
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                // onAuthStateChanged irá lidar com o sucesso
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+            }
+        });
+
+        // Inicia a aplicação após o carregamento da janela
+        window.addEventListener('load', initializeFirebase);
+
+    </script>
+</body>
+</html>
