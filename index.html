@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras 3.3 (Cloud e Google Auth)</title>
+    <title>Lista de Compras 4.0 (Categorias e Ordenação)</title>
     
     <!-- Configuração do Firebase Injetada -->
     <script type="module">
@@ -40,7 +40,8 @@
             collection, 
             query, 
             deleteDoc,
-            getDoc 
+            getDoc,
+            getDocs // Importação adicionada para uso no arquivamento
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
@@ -48,7 +49,7 @@
         window.firebaseDependencies = {
             initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, 
             signOut, onAuthStateChanged, getFirestore, doc, setDoc, 
-            onSnapshot, collection, query, deleteDoc, getDoc, setLogLevel
+            onSnapshot, collection, query, deleteDoc, getDoc, getDocs, setLogLevel
         };
     </script>
     
@@ -134,7 +135,7 @@
         /* Formulário de Adição */
         #form-item {
             display: grid;
-            grid-template-columns: 1fr 100px; /* Item/Preço/Qtd + Botão */
+            grid-template-columns: 1fr 100px; /* Item/Preço/Qtd/Categoria + Botão */
             gap: 10px;
             margin-bottom: 20px;
             border-top: 1px solid #f3f4f6;
@@ -144,11 +145,18 @@
         .input-group {
             display: flex;
             gap: 5px;
-            grid-column: 1 / 2; /* Ocupa a primeira coluna */
+            grid-column: 1 / 3; /* Ocupa as duas colunas */
             margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .input-item-wrap {
+            flex-basis: 100%;
+            display: flex;
+            gap: 5px;
         }
 
-        #input-item, #input-preco, #input-quantity {
+        #input-item, #input-preco, #input-quantity, #input-categoria {
             padding: 10px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
@@ -166,9 +174,12 @@
             max-width: 70px;
             text-align: center;
         }
+        #input-categoria {
+            flex-grow: 1;
+        }
 
         #form-item button {
-            grid-column: 2 / 3; /* Ocupa a segunda coluna */
+            grid-column: 2 / 3; /* Ocupa a segunda coluna (Adicionar) */
             padding: 10px 15px;
             border: none;
             background-color: #10b981;
@@ -184,11 +195,39 @@
             background-color: #059669;
         }
 
+        /* Controlo de Ordenação */
+        #sort-controls {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: #4b5563;
+        }
+        #sort-select {
+            padding: 5px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            margin-left: 5px;
+        }
+
         /* Lista de Compras */
         #lista-compras {
             list-style: none;
             padding: 0;
             margin: 0;
+        }
+        
+        .category-header {
+            background-color: #f3f4f6;
+            color: #374151;
+            padding: 5px 10px;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9em;
+            border-left: 5px solid #1e3a8a;
         }
 
         #lista-compras li {
@@ -205,6 +244,10 @@
             cursor: pointer;
             transition: color 0.3s;
             word-break: break-word;
+        }
+        
+        .item-comprado {
+             opacity: 0.6;
         }
 
         .item-comprado .item-name {
@@ -314,8 +357,10 @@
         }
         
         .disabled-overlay {
-            opacity: 0.5;
+            opacity: 0.4;
             pointer-events: none;
+            filter: blur(2px);
+            transition: opacity 0.5s;
         }
     </style>
 </head>
@@ -332,13 +377,27 @@
 
         <div id="app-content" class="loading-message disabled-overlay">
             <p id="loading-text">Aguardando login...</p>
+            
+            <!-- Controlo de Ordenação -->
+            <div id="sort-controls">
+                <span>Ordenar por:</span>
+                <select id="sort-select">
+                    <option value="adicao">Ordem de Inclusão</option>
+                    <option value="categoria">Categoria (Corredor)</option>
+                </select>
+            </div>
 
-            <!-- Conteúdo da Aplicação -->
+            <!-- Formulário de Adição -->
             <form id="form-item">
                 <div class="input-group">
-                    <input type="text" id="input-item" placeholder="Item (Ex: Arroz)" required list="catalog-suggestions">
+                    <div class="input-item-wrap">
+                        <input type="text" id="input-item" placeholder="Item (Ex: Arroz)" required list="catalog-suggestions">
+                    </div>
                     <input type="number" id="input-quantity" placeholder="Qtd" value="1" min="1">
                     <input type="number" id="input-preco" placeholder="Preço" step="0.01" min="0">
+                    <select id="input-categoria">
+                        <option value="">-- Categoria --</option>
+                    </select>
                 </div>
                 <button type="submit">Adicionar</button>
             </form>
@@ -370,7 +429,7 @@
         const { 
             initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signOut, 
             onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot, collection, 
-            query, deleteDoc, getDoc, setLogLevel
+            query, deleteDoc, getDoc, getDocs, setLogLevel
         } = window.firebaseDependencies;
         
         // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
@@ -381,8 +440,9 @@
         let db, auth, userId = null;
         let listaAtivaRef, historicoRef, catalogoRef;
         let totalAtual = 0;
+        let listaCache = []; // Cache local da lista para ordenação
         
-        const catalogData = {}; // Catálogo persistente em memória
+        const catalogData = {}; // Catálogo persistente em memória (usuário + padrão)
         
         const appContent = document.getElementById('app-content');
         const loadingText = document.getElementById('loading-text');
@@ -396,23 +456,53 @@
         const inputItem = document.getElementById('input-item');
         const inputPreco = document.getElementById('input-preco');
         const inputQuantity = document.getElementById('input-quantity');
+        const inputCategoria = document.getElementById('input-categoria');
         const listaUL = document.getElementById('lista-compras');
         const arquivarBtn = document.getElementById('arquivar-btn');
         const valorTotalSpan = document.getElementById('valor-total');
         const historicoUL = document.getElementById('historico-compras');
         const datalist = document.getElementById('catalog-suggestions');
+        const sortSelect = document.getElementById('sort-select');
+        
+        // --- LISTA DE CATEGORIAS ---
+        const CATEGORIAS = [
+            { id: "A01", nome: "Hortifrúti / Frios" },
+            { id: "A02", nome: "Laticínios / Iogurtes" },
+            { id: "B01", nome: "Padaria / Matinais" },
+            { id: "C01", nome: "Carnes / Peixes Congelados" },
+            { id: "D01", nome: "Mercearia (Arroz, Feijão)" },
+            { id: "D02", nome: "Bebidas / Sucos" },
+            { id: "E01", nome: "Limpeza" },
+            { id: "E02", nome: "Higiene Pessoal" },
+            { id: "Z99", nome: "Outros" }
+        ];
+        
+        // Preenche o Select de Categorias
+        function populateCategorias() {
+            CATEGORIAS.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.nome;
+                inputCategoria.appendChild(option);
+            });
+        }
+        populateCategorias();
         
         // --- PRODUTOS INICIAIS (Catálogo Padrão) ---
+        // Adiciona a categoria aos produtos padrão
         const PRODUTOS_PADRAO = [
-            { nome: "Arroz (5kg)", preco: 25.50 }, { nome: "Feijão Preto (1kg)", preco: 7.80 },
-            { nome: "Leite Integral (1L)", preco: 5.20 }, { nome: "Café (500g)", preco: 18.90 },
-            { nome: "Pão de Forma", preco: 8.50 }, { nome: "Ovos (dúzia)", preco: 15.00 },
-            { nome: "Azeite (500ml)", preco: 32.00 }, { nome: "Manteiga", preco: 11.50 },
-            { nome: "Queijo Mussarela (200g)", preco: 14.00 }, { nome: "Frango (1kg)", preco: 16.50 },
-            { nome: "Maçã (kg)", preco: 8.00 }, { nome: "Banana (kg)", preco: 6.50 },
-            { nome: "Batata (kg)", preco: 5.00 }, { nome: "Tomate (kg)", preco: 9.50 },
-            { nome: "Detergente", preco: 3.50 }, { nome: "Sabão em Pó (1kg)", preco: 15.00 },
-            { nome: "Papel Higiénico (12uni)", preco: 20.00 }
+            { nome: "Arroz (5kg)", preco: 25.50, categoria: "D01" }, 
+            { nome: "Feijão Preto (1kg)", preco: 7.80, categoria: "D01" },
+            { nome: "Leite Integral (1L)", preco: 5.20, categoria: "A02" }, 
+            { nome: "Café (500g)", preco: 18.90, categoria: "B01" },
+            { nome: "Pão de Forma", preco: 8.50, categoria: "B01" }, 
+            { nome: "Ovos (dúzia)", preco: 15.00, categoria: "A02" },
+            { nome: "Azeite (500ml)", preco: 32.00, categoria: "D01" }, 
+            { nome: "Frango (1kg)", preco: 16.50, categoria: "C01" },
+            { nome: "Maçã (kg)", preco: 8.00, categoria: "A01" }, 
+            { nome: "Banana (kg)", preco: 6.50, categoria: "A01" },
+            { nome: "Detergente", preco: 3.50, categoria: "E01" }, 
+            { nome: "Papel Higiénico (12uni)", preco: 20.00, categoria: "E02" }
         ];
 
         // --- FUNÇÕES DE PERSISTÊNCIA (Firestore/Local) ---
@@ -452,16 +542,21 @@
                 // 1. Carregar Catálogo
                 const catalogSnap = await getDoc(catalogoRef);
                 const userCatalog = catalogSnap.exists() ? catalogSnap.data().precos : {};
+                
+                // Mescla catálogo padrão com catálogo do usuário
+                PRODUTOS_PADRAO.forEach(p => {
+                    catalogData[p.nome] = { preco: p.preco.toFixed(2), categoria: p.categoria };
+                });
                 Object.assign(catalogData, userCatalog);
                 
-                // 2. Carregar Lista Ativa
+                // 2. Observar Lista Ativa
                 onSnapshot(listaAtivaRef, (snapshot) => {
-                    const lista = [];
-                    snapshot.forEach(doc => lista.push({ id: doc.id, ...doc.data() }));
-                    renderListaAtiva(lista);
+                    listaCache = [];
+                    snapshot.forEach(doc => listaCache.push({ id: doc.id, ...doc.data() }));
+                    renderListaAtiva(); // Renderiza a partir do cache
                 });
 
-                // 3. Carregar Histórico
+                // 3. Observar Histórico
                 onSnapshot(historicoRef, (snapshot) => {
                     const historico = [];
                     snapshot.forEach(doc => historico.push({ id: doc.id, ...doc.data() }));
@@ -472,9 +567,15 @@
                 const lista = loadFromLocal(LOCAL_STORAGE_KEY_LISTA) || [];
                 const historico = loadFromLocal(LOCAL_STORAGE_KEY_ARQUIVO) || [];
                 const userCatalog = loadFromLocal(LOCAL_STORAGE_KEY_CATALOGO) || {};
+                
+                // Mescla catálogo padrão com catálogo do usuário (Local Storage)
+                PRODUTOS_PADRAO.forEach(p => {
+                    catalogData[p.nome] = { preco: p.preco.toFixed(2), categoria: p.categoria };
+                });
                 Object.assign(catalogData, userCatalog);
                 
-                renderListaAtiva(lista);
+                listaCache = lista;
+                renderListaAtiva();
                 renderHistorico(historico);
                 // Não há onSnapshot no LocalStorage, apenas load inicial
             }
@@ -483,16 +584,24 @@
             renderCatalogo();
         }
         
-        // Salva o catálogo persistente (preços)
+        // Salva o catálogo persistente (preços e categorias)
         async function saveCatalog() {
+            // Filtra apenas os itens que não são do catálogo padrão para salvar
+            const userCatalogOnly = {};
+            for (const nome in catalogData) {
+                if (!PRODUTOS_PADRAO.some(p => p.nome === nome)) {
+                    userCatalogOnly[nome] = catalogData[nome];
+                }
+            }
+
             if (db && userId) { // Verifica se há DB e utilizador logado
                 try {
-                    await setDoc(catalogoRef, { precos: catalogData }, { merge: true });
+                    await setDoc(catalogoRef, { precos: userCatalogOnly }, { merge: true });
                 } catch(e) {
                     console.error("Erro ao salvar catálogo no Firestore:", e);
                 }
             } else {
-                saveToLocal(LOCAL_STORAGE_KEY_CATALOGO, catalogData);
+                saveToLocal(LOCAL_STORAGE_KEY_CATALOGO, userCatalogOnly);
             }
         }
         
@@ -508,19 +617,17 @@
 
         function updateTotal() {
             totalAtual = 0;
-            Array.from(listaUL.children).forEach(li => {
-                const itemData = JSON.parse(li.getAttribute('data-item'));
-                totalAtual += updateItemSubtotal(itemData);
+            listaCache.forEach(item => {
+                totalAtual += updateItemSubtotal(item);
             });
             valorTotalSpan.textContent = formatCurrency(totalAtual);
         }
 
-        // Renderiza as sugestões do catálogo (padrão + usuário)
+        // Renderiza as sugestões do catálogo
         function renderCatalogo() {
             datalist.innerHTML = '';
-            const allProducts = new Set(PRODUTOS_PADRAO.map(p => p.nome));
-
-            for (const nome in catalogData) {
+            const allProducts = new Set();
+            for(const nome in catalogData) {
                 allProducts.add(nome);
             }
 
@@ -532,28 +639,53 @@
         }
         
         // Persistência da lista ativa (Firestore ou Local)
-        async function persistListaAtiva() {
-            if (db) {
-                // No Firestore, onSnapshot lida com a renderização. 
-                // A persistência é feita via manipulação do Firestore.
-            } else {
+        function persistListaAtiva() {
+            if (!db) {
                 // Local Storage: Salva o array de itens completo
-                const lista = Array.from(listaUL.children).map(li => JSON.parse(li.getAttribute('data-item')));
-                saveToLocal(LOCAL_STORAGE_KEY_LISTA, lista);
+                saveToLocal(LOCAL_STORAGE_KEY_LISTA, listaCache);
                 updateTotal();
             }
         }
-
-        // Renderiza a lista a partir de um array de dados
-        function renderListaAtiva(lista) {
+        
+        // Aplica a ordenação e renderiza a lista no DOM
+        function renderListaAtiva() {
             listaUL.innerHTML = '';
-            lista.forEach(item => {
-                // Para itens carregados do storage/db, o ID será o doc.id. Para o LocalStorage, geramos um.
-                item.id = item.id || crypto.randomUUID();
+            
+            // 1. Aplica a ordenação
+            const tipoOrdenacao = sortSelect.value;
+            let listaOrdenada = [...listaCache];
+
+            if (tipoOrdenacao === 'categoria') {
+                listaOrdenada.sort((a, b) => {
+                    const catA = a.categoria || 'Z99';
+                    const catB = b.categoria || 'Z99';
+                    return catA.localeCompare(catB);
+                });
+            } else {
+                // Ordem de Inclusão (timestamp)
+                listaOrdenada.sort((a, b) => a.timestamp - b.timestamp);
+            }
+            
+            // 2. Renderiza os itens
+            let categoriaAtual = null;
+
+            listaOrdenada.forEach(item => {
+                // Se a ordenação for por categoria, adiciona o cabeçalho
+                if (tipoOrdenacao === 'categoria' && item.categoria !== categoriaAtual) {
+                    categoriaAtual = item.categoria;
+                    const catNome = CATEGORIAS.find(c => c.id === categoriaAtual)?.nome || "Outros";
+                    const header = document.createElement('div');
+                    header.className = 'category-header';
+                    header.textContent = catNome;
+                    listaUL.appendChild(header);
+                }
+                
                 const li = createListItem(item);
                 listaUL.appendChild(li);
             });
+            
             updateTotal();
+            persistListaAtiva();
         }
 
         // Cria o elemento LI para a lista ativa
@@ -561,12 +693,16 @@
             const li = document.createElement('li');
             li.setAttribute('data-item', JSON.stringify(item));
             li.setAttribute('data-id', item.id);
+            li.setAttribute('data-categoria', item.categoria);
             if (item.comprado) {
                 li.classList.add('item-comprado');
             }
 
+            // Encontra o nome da categoria para exibição
+            const catNome = CATEGORIAS.find(c => c.id === item.categoria)?.nome || 'Outros';
+
             li.innerHTML = `
-                <span class="item-name">${item.nome}</span>
+                <span class="item-name" title="Categoria: ${catNome}">${item.nome}</span>
                 <span class="editable-quantity" contenteditable="true" data-field="quantidade">${item.quantidade}</span>
                 <span class="editable-price" contenteditable="true" data-field="preco">${formatCurrency(item.preco)}</span>
                 <button class="remover-item">X</button>
@@ -595,24 +731,31 @@
         // --- FUNÇÕES DE AÇÃO NA LISTA ---
 
         async function toggleComprado(li) {
-            const item = JSON.parse(li.getAttribute('data-item'));
-            item.comprado = !item.comprado;
-            li.classList.toggle('item-comprado');
-            li.setAttribute('data-item', JSON.stringify(item));
+            const itemId = li.getAttribute('data-id');
+            const itemIndex = listaCache.findIndex(i => i.id === itemId);
+            if (itemIndex === -1) return;
 
-            if (db && item.id) {
+            const item = listaCache[itemIndex];
+            item.comprado = !item.comprado;
+            
+            // Atualiza no Firestore ou Local Storage
+            if (db && itemId) {
                 try {
-                    await setDoc(doc(listaAtivaRef, item.id), { comprado: item.comprado }, { merge: true });
+                    await setDoc(doc(listaAtivaRef, itemId), { comprado: item.comprado }, { merge: true });
                 } catch(e) {
                     console.error("Erro ao atualizar item no Firestore:", e);
                 }
             } else {
-                persistListaAtiva();
+                renderListaAtiva(); // Re-renderiza para atualizar o visual do local storage
             }
         }
 
         async function removeItem(li) {
             const itemId = li.getAttribute('data-id');
+            
+            // Remove do cache
+            listaCache = listaCache.filter(i => i.id !== itemId);
+
             if (db && itemId) {
                 try {
                     await deleteDoc(doc(listaAtivaRef, itemId));
@@ -620,8 +763,7 @@
                     console.error("Erro ao remover item do Firestore:", e);
                 }
             } else {
-                li.remove();
-                persistListaAtiva();
+                renderListaAtiva();
             }
         }
         
@@ -630,37 +772,38 @@
             const field = event.target.getAttribute('data-field');
             let newValue = event.target.textContent.replace('R$', '').replace(',', '.').trim();
             
-            let item = JSON.parse(li.getAttribute('data-item'));
+            const itemId = li.getAttribute('data-id');
+            const itemIndex = listaCache.findIndex(i => i.id === itemId);
+            if (itemIndex === -1) return;
+            const item = listaCache[itemIndex];
 
             if (field === 'preco') {
-                newValue = Math.max(0, parseFloat(newValue) || 0); // Garante que é número >= 0
+                newValue = Math.max(0, parseFloat(newValue) || 0);
                 item.preco = newValue.toFixed(2);
                 event.target.textContent = formatCurrency(item.preco);
                 
-                // Salva o novo preço no catálogo persistente
-                catalogData[item.nome] = item.preco;
+                // Salva o novo preço e categoria no catálogo persistente
+                catalogData[item.nome] = { preco: item.preco, categoria: item.categoria };
                 await saveCatalog();
 
             } else if (field === 'quantidade') {
-                newValue = Math.max(1, parseInt(newValue) || 1); // Garante que é inteiro >= 1
+                newValue = Math.max(1, parseInt(newValue) || 1);
                 item.quantidade = newValue;
                 event.target.textContent = item.quantidade;
             }
 
-            li.setAttribute('data-item', JSON.stringify(item));
-            
             // Atualiza no Firestore ou Local Storage
             const dataToUpdate = {};
             dataToUpdate[field] = (field === 'preco') ? parseFloat(item.preco) : item.quantidade;
             
-            if (db && item.id) {
+            if (db && itemId) {
                 try {
-                    await setDoc(doc(listaAtivaRef, item.id), dataToUpdate, { merge: true });
+                    await setDoc(doc(listaAtivaRef, itemId), dataToUpdate, { merge: true });
                 } catch(e) {
                     console.error("Erro ao atualizar item no Firestore:", e);
                 }
             } else {
-                persistListaAtiva();
+                renderListaAtiva();
             }
         }
         
@@ -670,76 +813,85 @@
             const nomeItem = inputItem.value.trim();
             const precoItem = parseFloat(inputPreco.value.replace(',', '.')) || 0;
             const quantidadeItem = parseInt(inputQuantity.value) || 1;
+            const categoriaItem = inputCategoria.value;
 
             if (nomeItem) {
                 const novoItem = {
                     nome: nomeItem,
                     preco: precoItem.toFixed(2),
                     quantidade: quantidadeItem,
+                    categoria: categoriaItem,
                     comprado: false,
                     timestamp: Date.now()
                 };
                 
-                // 1. Salva/Atualiza o preço no catálogo persistente
-                catalogData[nomeItem] = novoItem.preco;
+                // 1. Salva/Atualiza o preço e categoria no catálogo persistente
+                catalogData[nomeItem] = { preco: novoItem.preco, categoria: novoItem.categoria };
                 await saveCatalog();
 
                 // 2. Adiciona à lista ativa (Firestore ou Local Storage)
                 if (db) {
                     try {
                         // O Firestore gera o ID e o onSnapshot renderiza
-                        await setDoc(doc(listaAtivaRef), novoItem);
+                        const novoDocRef = doc(listaAtivaRef);
+                        novoItem.id = novoDocRef.id;
+                        await setDoc(novoDocRef, novoItem);
                     } catch(e) {
                         console.error("Erro ao adicionar item ao Firestore:", e);
                     }
                 } else {
-                    // Local Storage: gera um ID e persiste
+                    // Local Storage: gera um ID e adiciona ao cache
                     novoItem.id = crypto.randomUUID();
-                    listaUL.appendChild(createListItem(novoItem));
-                    persistListaAtiva();
+                    listaCache.push(novoItem);
+                    renderListaAtiva();
                 }
 
                 // Limpa o formulário
                 inputItem.value = '';
                 inputPreco.value = '';
                 inputQuantity.value = '1';
+                inputCategoria.value = '';
                 inputItem.focus();
                 
-                // Re-renderiza as sugestões após adicionar novo item/preço
+                // Re-renderiza as sugestões
                 renderCatalogo();
             }
         });
         
-        // Lida com o preenchimento automático de preço
+        // Lida com o preenchimento automático de preço/categoria
         inputItem.addEventListener('input', () => {
             const nomeItem = inputItem.value.trim();
-            // Verifica no catálogo do usuário, depois no catálogo padrão
-            const precoSugerido = catalogData[nomeItem] || PRODUTOS_PADRAO.find(p => p.nome === nomeItem)?.preco;
+            const sugestao = catalogData[nomeItem];
 
-            if (precoSugerido) {
-                inputPreco.value = parseFloat(precoSugerido).toFixed(2);
+            if (sugestao) {
+                inputPreco.value = parseFloat(sugestao.preco).toFixed(2);
+                inputCategoria.value = sugestao.categoria;
             } else {
-                // Limpa se não encontrar sugestão
                 inputPreco.value = '';
+                inputCategoria.value = '';
             }
         });
 
+        // Evento para mudar a ordenação
+        sortSelect.addEventListener('change', renderListaAtiva);
+
+
         // Arquiva a compra atual
         arquivarBtn.addEventListener('click', async () => {
-            const itensCompra = Array.from(listaUL.children).map(li => {
-                const item = JSON.parse(li.getAttribute('data-item'));
+            if (listaCache.length === 0) {
+                console.log("A lista está vazia, nada para arquivar.");
+                return;
+            }
+
+            const itensCompra = listaCache.map(item => {
                 return {
                     nome: item.nome,
                     quantidade: item.quantidade,
                     precoUnitario: parseFloat(item.preco),
+                    categoria: item.categoria,
                     subtotal: updateItemSubtotal(item)
                 };
             });
-
-            if (itensCompra.length === 0) {
-                console.log("A lista está vazia, nada para arquivar.");
-                return;
-            }
 
             const registroArquivo = {
                 data: new Date().toISOString(),
@@ -750,15 +902,15 @@
             if (db) {
                 try {
                     // 1. Adiciona ao Histórico (Firestore)
-                    await setDoc(doc(historicoRef), registroArquivo);
+                    const arquivoRef = doc(historicoRef);
+                    await setDoc(arquivoRef, registroArquivo);
+                    
                     // 2. Limpa a lista ativa (Firestore)
-                    
-                    // Método para limpar no Firestore: remover item por item
-                    const currentItems = await getDocs(query(listaAtivaRef)); // getDocs não foi importado
-                    
-                    // Como getDocs não foi importado, vamos usar o método manual mais simples:
-                    const itemIds = Array.from(listaUL.children).map(li => li.getAttribute('data-id'));
-                    const deletePromises = itemIds.map(id => deleteDoc(doc(listaAtivaRef, id)));
+                    const currentItemsSnapshot = await getDocs(query(listaAtivaRef));
+                    const deletePromises = [];
+                    currentItemsSnapshot.forEach(doc => {
+                        deletePromises.push(deleteDoc(doc.ref));
+                    });
                     await Promise.all(deletePromises);
                     
                 } catch(e) {
@@ -771,9 +923,9 @@
                 saveToLocal(LOCAL_STORAGE_KEY_ARQUIVO, historico);
                 saveToLocal(LOCAL_STORAGE_KEY_LISTA, []); // Limpa lista ativa
                 
+                listaCache = []; // Limpa cache
                 renderHistorico(historico);
-                listaUL.innerHTML = '';
-                updateTotal();
+                renderListaAtiva(); // Renderiza vazia
             }
         });
 
@@ -793,7 +945,8 @@
                     </div>
                     ${registro.itens.map(item => `
                         <span class="historico-detalhe">
-                            ${item.nome} (${item.quantidade} uni) @ ${formatCurrency(item.precoUnitario)} = ${formatCurrency(item.subtotal)}
+                            ${item.nome} (${item.quantidade} uni) - ${CATEGORIAS.find(c => c.id === item.categoria)?.nome || 'Outros'}
+                            <span style="float: right;">${formatCurrency(item.subtotal)}</span>
                         </span>
                     `).join('')}
                 `;
@@ -805,48 +958,44 @@
 
         async function initializeFirebase() {
             try {
-                // Verifica a configuração do Firebase (que injetamos no head)
                 const firebaseConfig = JSON.parse(window.__firebase_config);
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                setLogLevel('debug'); // Ativa logs de debug do Firestore
+                setLogLevel('debug');
 
-                // Define o observador de estado de autenticação
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         // Utilizador logado
                         userId = user.uid;
-                        getStoreRefs(userId); // Define as referências do Firestore
+                        getStoreRefs(userId);
                         
                         userInfoDiv.innerHTML = `Logado como: ${user.displayName || user.email}`;
                         loginBtn.style.display = 'none';
                         logoutBtn.style.display = 'inline-block';
                         authErrorMessageDiv.style.display = 'none';
                         
+                        // O CONTEÚDO SÓ É HABILITADO APÓS A AUTENTICAÇÃO
                         appContent.classList.remove('disabled-overlay');
                         loadingText.style.display = 'none';
 
-                        // Carrega dados após o login
                         loadInitialData(true); 
 
                     } else {
                         // Utilizador deslogado
                         userId = null;
-                        userInfoDiv.textContent = 'Não logado.';
+                        userInfoDiv.textContent = 'Não logado. Os dados serão salvos no navegador.';
                         loginBtn.style.display = 'inline-block';
                         logoutBtn.style.display = 'none';
                         authErrorMessageDiv.style.display = 'none';
                         
-                        appContent.classList.add('disabled-overlay');
-                        loadingText.textContent = 'Por favor, inicie a sessão para carregar e salvar a sua lista na nuvem.';
+                        // FALLBACK: Habilita conteúdo para Local Storage, mas com aviso
+                        appContent.classList.remove('disabled-overlay');
+                        loadingText.textContent = 'Atenção: A lista será salva apenas neste navegador (Local Storage).';
                         loadingText.style.display = 'block';
 
-                        // Limpa a UI e usa Local Storage (apenas para exibição)
-                        listaUL.innerHTML = '';
-                        historicoUL.innerHTML = '';
-                        updateTotal();
+                        loadInitialData(false);
                     }
                 });
 
@@ -862,16 +1011,17 @@
                 }
 
                 // FALLBACK: Se o Firebase falhar, usa Local Storage
-                loadInitialData(false);
                 appContent.classList.remove('disabled-overlay');
-                loadingText.style.display = 'none';
+                loadingText.textContent = 'Atenção: Falha na nuvem. A lista será salva apenas neste navegador (Local Storage).';
+                loadingText.style.display = 'block';
+                loadInitialData(false);
             }
         }
         
         // Login com Google
         loginBtn.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
-            authErrorMessageDiv.style.display = 'none'; // Limpa erros anteriores
+            authErrorMessageDiv.style.display = 'none';
             try {
                 await signInWithPopup(auth, provider);
                 // onAuthStateChanged irá lidar com o sucesso
