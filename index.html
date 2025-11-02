@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras 4.1 (Login Redirect)</title>
+    <title>Lista de Compras 4.2 (Login Anónimo)</title>
     
     <!-- Configuração do Firebase Injetada -->
     <script type="module">
@@ -19,7 +19,8 @@
         // Simulação das variáveis globais para o ambiente de execução
         window.__firebase_config = JSON.stringify(firebaseConfig);
         window.__app_id = firebaseConfig.projectId;
-        // Não precisamos de __initial_auth_token pois estamos a usar o Login Google
+        // Se estiver fora do Canvas, __initial_auth_token não existirá, e o app usará signInAnonymously()
+        window.__initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
     </script>
 
     <!-- Importações do Firebase SDK -->
@@ -27,10 +28,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
-            GoogleAuthProvider, 
-            signInWithRedirect, /* MUDANÇA: USANDO REDIRECT */
-            getRedirectResult, /* NOVO: Para capturar o resultado após o redirecionamento */
-            signOut,
+            signInAnonymously, // Voltamos ao Login Anónimo
+            signInWithCustomToken, // Necessário para o Canvas
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
@@ -48,8 +47,8 @@
         
         // Atribui as importações a `window` para que o script principal possa aceder a elas
         window.firebaseDependencies = {
-            initializeApp, getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, 
-            signOut, onAuthStateChanged, getFirestore, doc, setDoc, 
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
+            onAuthStateChanged, getFirestore, doc, setDoc, 
             onSnapshot, collection, query, deleteDoc, getDoc, getDocs, setLogLevel
         };
     </script>
@@ -90,32 +89,6 @@
             margin-bottom: 20px;
         }
 
-        .auth-button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .auth-button:active {
-            transform: scale(0.99);
-        }
-
-        #login-btn {
-            background-color: #4285f4; /* Google Blue */
-            color: white;
-        }
-
-        #logout-btn {
-            background-color: #d1d5db; /* Gray */
-            color: #374151;
-        }
-
         #user-info {
             font-size: 0.9em;
             color: #4b5563;
@@ -132,6 +105,17 @@
             font-size: 0.9em;
             text-align: left;
         }
+        
+        .alert-message {
+             color: #1e3a8a;
+            background-color: #e0f2fe;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            text-align: left;
+        }
+
 
         /* Formulário de Adição */
         #form-item {
@@ -371,13 +355,15 @@
         
         <div id="auth-status">
             <div id="user-info">A carregar autenticação...</div>
-            <button id="login-btn" class="auth-button" style="display:none;">Entrar com Google</button>
-            <button id="logout-btn" class="auth-button" style="display:none;">Sair</button>
-            <div id="auth-error-message" class="error-message" style="display:none;"></div>
+             <div id="auth-error-message" class="error-message" style="display:none;"></div>
+             <div class="alert-message">
+                <strong>Modo Nuvem (Firebase Ativo):</strong> A sua lista está a ser salva automaticamente na nuvem usando **Login Anónimo**.
+                <br><em>Atenção: Ative o provedor Anónimo no seu console do Firebase!</em>
+             </div>
         </div>
 
         <div id="app-content" class="loading-message disabled-overlay">
-            <p id="loading-text">Aguardando login...</p>
+            <p id="loading-text">Aguardando conexão segura...</p>
             
             <!-- Controlo de Ordenação -->
             <div id="sort-controls">
@@ -428,8 +414,8 @@
     <script type="module">
         // Importa as dependências do Firebase carregadas na janela
         const { 
-            initializeApp, getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, 
-            signOut, onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot, collection, 
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
+            onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot, collection, 
             query, deleteDoc, getDoc, getDocs, setLogLevel
         } = window.firebaseDependencies;
         
@@ -448,8 +434,6 @@
         const appContent = document.getElementById('app-content');
         const loadingText = document.getElementById('loading-text');
         
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
         const userInfoDiv = document.getElementById('user-info');
         const authErrorMessageDiv = document.getElementById('auth-error-message');
 
@@ -510,6 +494,7 @@
 
         const getStoreRefs = (id) => {
             const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
+            // Padrão de segurança: /artifacts/{appId}/users/{userId}
             const userRoot = `/artifacts/${appId}/users/${id}`;
             listaAtivaRef = collection(db, `${userRoot}/listas/ativa`);
             historicoRef = collection(db, `${userRoot}/listas/arquivo`);
@@ -578,7 +563,6 @@
                 listaCache = lista;
                 renderListaAtiva();
                 renderHistorico(historico);
-                // Não há onSnapshot no LocalStorage, apenas load inicial
             }
              
             // Renderiza o catálogo e as sugestões no datalist
@@ -595,7 +579,7 @@
                 }
             }
 
-            if (db && userId) { // Verifica se há DB e utilizador logado
+            if (db && userId) { 
                 try {
                     await setDoc(catalogoRef, { precos: userCatalogOnly }, { merge: true });
                 } catch(e) {
@@ -957,30 +941,7 @@
         
         // --- FUNÇÕES DE AUTENTICAÇÃO ---
         
-        let authReady = false; // Estado para garantir que o fallback só é acionado uma vez
-        
-        // Força o fallback para Local Storage se o Firebase não responder a tempo
-        function forceLocalFallback() {
-            if (!authReady) {
-                console.warn("Firebase Auth timeout (5s). Forçando o fallback para Local Storage.");
-                authReady = true; 
-                userId = null;
-                appContent.classList.remove('disabled-overlay');
-                loadingText.textContent = 'Atenção: Falha na nuvem. A lista será salva apenas neste navegador (Local Storage).';
-                loadingText.style.display = 'block';
-                loadInitialData(false);
-                userInfoDiv.textContent = 'Não logado. (Falha de conexão/domínio)';
-                loginBtn.style.display = 'inline-block';
-                logoutBtn.style.display = 'none';
-                authErrorMessageDiv.style.display = 'none';
-            }
-        }
-        
-
         async function initializeFirebase() {
-            // Define o timeout para forçar o fallback
-            const authTimeout = setTimeout(forceLocalFallback, 5000); 
-            
             try {
                 const firebaseConfig = JSON.parse(window.__firebase_config);
                 const app = initializeApp(firebaseConfig);
@@ -989,102 +950,50 @@
                 
                 setLogLevel('debug');
                 
-                // MUDANÇA CRUCIAL: Capturar o resultado do redirecionamento
-                const redirectResult = await getRedirectResult(auth);
-                if (redirectResult) {
-                    console.log("Resultado de redirecionamento de login recebido com sucesso.");
-                    // onAuthStateChanged será acionado logo após isso
+                // MUDANÇA: Login Anónimo (Não precisamos mais de onAuthStateChanged complexo)
+                const customToken = window.__initial_auth_token;
+                
+                if (customToken) {
+                    // 1. Login com Custom Token (Ambiente Canvas)
+                    await signInWithCustomToken(auth, customToken);
+                } else {
+                    // 2. Login Anónimo (GitHub Pages e produção)
+                    await signInAnonymously(auth);
                 }
+                
+                // Sucesso na Autenticação Anónima
+                const user = auth.currentUser;
+                userId = user.uid;
+                getStoreRefs(userId);
+                
+                userInfoDiv.innerHTML = `Logado anonimamente. ID: ${userId.substring(0, 8)}...`;
+                authErrorMessageDiv.style.display = 'none';
 
+                // Habilita o CONTEÚDO
+                appContent.classList.remove('disabled-overlay');
+                loadingText.style.display = 'none';
 
-                onAuthStateChanged(auth, (user) => {
-                    // Limpa o timeout assim que o estado é resolvido
-                    clearTimeout(authTimeout); 
-                    authReady = true;
-                    
-                    if (user) {
-                        // Utilizador logado
-                        userId = user.uid;
-                        getStoreRefs(userId);
-                        
-                        userInfoDiv.innerHTML = `Logado como: ${user.displayName || user.email}`;
-                        loginBtn.style.display = 'none';
-                        logoutBtn.style.display = 'inline-block';
-                        authErrorMessageDiv.style.display = 'none';
-                        
-                        // O CONTEÚDO SÓ É HABILITADO APÓS A AUTENTICAÇÃO
-                        appContent.classList.remove('disabled-overlay');
-                        loadingText.style.display = 'none';
-
-                        loadInitialData(true); 
-
-                    } else {
-                        // Utilizador deslogado (ou falha de login)
-                        userId = null;
-                        userInfoDiv.textContent = 'Não logado. Os dados serão salvos no navegador.';
-                        loginBtn.style.display = 'inline-block';
-                        logoutBtn.style.display = 'none';
-                        authErrorMessageDiv.style.display = 'none';
-                        
-                        // FALLBACK: Habilita conteúdo para Local Storage, mas com aviso
-                        appContent.classList.remove('disabled-overlay');
-                        loadingText.textContent = 'Atenção: A lista será salva apenas neste navegador (Local Storage).';
-                        loadingText.style.display = 'block';
-
-                        loadInitialData(false);
-                    }
-                });
+                loadInitialData(true); 
 
             } catch (error) {
-                clearTimeout(authTimeout);
-                console.error("[CONSOLE_ERROR] Erro ao inicializar Firebase (App ou Auth):", error);
+                console.error("[CONSOLE_ERROR] Erro fatal do Firebase:", error);
                 
                 // Trata o erro de Auth/Configuração
                 if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
-                    authErrorMessageDiv.innerHTML = `<strong>Erro de Configuração!</strong> Por favor, ative o método 'Google' no seu console do Firebase.`;
+                    authErrorMessageDiv.innerHTML = `<strong>Erro de Configuração!</strong> Por favor, ative o método 'Anónimo' no seu console do Firebase.`;
                     authErrorMessageDiv.style.display = 'block';
-                } else {
-                    userInfoDiv.innerHTML = `<strong style="color: red;">Erro!</strong> Ocorreu um erro ao carregar o serviço de autenticação.`;
                 }
 
                 // FALLBACK: Se o Firebase falhar, usa Local Storage
-                forceLocalFallback();
+                userId = null;
+                appContent.classList.remove('disabled-overlay');
+                loadingText.textContent = 'ERRO DE NUVEM! A lista será salva apenas neste navegador (Local Storage).';
+                loadingText.style.display = 'block';
+                userInfoDiv.textContent = 'Modo Offline Ativo.';
+                loadInitialData(false);
             }
         }
         
-        // Login com Google
-        loginBtn.addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
-            authErrorMessageDiv.style.display = 'none';
-            try {
-                // MUDANÇA CRUCIAL: Usar Redirect em vez de Popup
-                // Isto fará com que a página seja redirecionada para o Google.
-                await signInWithRedirect(auth, provider);
-            } catch (error) {
-                console.error("Erro ao fazer login com Google:", error);
-
-                if (error.code === 'auth/unauthorized-domain') {
-                    authErrorMessageDiv.innerHTML = `
-                        <strong>Erro de Domínio Não Autorizado!</strong> Este erro ocorre porque o domínio atual (ou o ambiente de teste) não está na lista de **Domínios Autorizados** do seu Firebase. O código está correto, mas precisa de ser executado no seu domínio oficial do GitHub Pages.
-                    `;
-                    authErrorMessageDiv.style.display = 'block';
-                } else {
-                    authErrorMessageDiv.innerHTML = `<strong>Erro de Login:</strong> ${error.message}`;
-                    authErrorMessageDiv.style.display = 'block';
-                }
-            }
-        });
-
-        // Logout
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                // onAuthStateChanged irá lidar com o sucesso
-            } catch (error) {
-                console.error("Erro ao fazer logout:", error);
-            }
-        });
-
         // Inicia a aplicação após o carregamento da janela
         window.addEventListener('load', initializeFirebase);
 
