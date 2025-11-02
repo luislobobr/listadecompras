@@ -956,8 +956,31 @@
         }
         
         // --- FUNÇÕES DE AUTENTICAÇÃO ---
+        
+        let authReady = false; // Estado para garantir que o fallback só é acionado uma vez
+        
+        // Força o fallback para Local Storage se o Firebase não responder a tempo
+        function forceLocalFallback() {
+            if (!authReady) {
+                console.warn("Firebase Auth timeout (5s). Forçando o fallback para Local Storage.");
+                authReady = true; 
+                userId = null;
+                appContent.classList.remove('disabled-overlay');
+                loadingText.textContent = 'Atenção: Falha na nuvem. A lista será salva apenas neste navegador (Local Storage).';
+                loadingText.style.display = 'block';
+                loadInitialData(false);
+                userInfoDiv.textContent = 'Não logado. (Falha de conexão/domínio)';
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+                authErrorMessageDiv.style.display = 'none';
+            }
+        }
+        
 
         async function initializeFirebase() {
+            // Define o timeout para forçar o fallback
+            const authTimeout = setTimeout(forceLocalFallback, 5000); 
+            
             try {
                 const firebaseConfig = JSON.parse(window.__firebase_config);
                 const app = initializeApp(firebaseConfig);
@@ -975,6 +998,10 @@
 
 
                 onAuthStateChanged(auth, (user) => {
+                    // Limpa o timeout assim que o estado é resolvido
+                    clearTimeout(authTimeout); 
+                    authReady = true;
+                    
                     if (user) {
                         // Utilizador logado
                         userId = user.uid;
@@ -992,7 +1019,7 @@
                         loadInitialData(true); 
 
                     } else {
-                        // Utilizador deslogado
+                        // Utilizador deslogado (ou falha de login)
                         userId = null;
                         userInfoDiv.textContent = 'Não logado. Os dados serão salvos no navegador.';
                         loginBtn.style.display = 'inline-block';
@@ -1009,6 +1036,7 @@
                 });
 
             } catch (error) {
+                clearTimeout(authTimeout);
                 console.error("[CONSOLE_ERROR] Erro ao inicializar Firebase (App ou Auth):", error);
                 
                 // Trata o erro de Auth/Configuração
@@ -1020,10 +1048,7 @@
                 }
 
                 // FALLBACK: Se o Firebase falhar, usa Local Storage
-                appContent.classList.remove('disabled-overlay');
-                loadingText.textContent = 'Atenção: Falha na nuvem. A lista será salva apenas neste navegador (Local Storage).';
-                loadingText.style.display = 'block';
-                loadInitialData(false);
+                forceLocalFallback();
             }
         }
         
@@ -1040,9 +1065,7 @@
 
                 if (error.code === 'auth/unauthorized-domain') {
                     authErrorMessageDiv.innerHTML = `
-                        <strong>Erro de Domínio Não Autorizado!</strong> Por favor, adicione o domínio 
-                        onde está a testar (ex: <code>seu-usuario.github.io</code>) à lista de 
-                        Domínios Autorizados nas **Configurações de Autenticação** do seu projeto Firebase.
+                        <strong>Erro de Domínio Não Autorizado!</strong> Este erro ocorre porque o domínio atual (ou o ambiente de teste) não está na lista de **Domínios Autorizados** do seu Firebase. O código está correto, mas precisa de ser executado no seu domínio oficial do GitHub Pages.
                     `;
                     authErrorMessageDiv.style.display = 'block';
                 } else {
