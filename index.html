@@ -3,15 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras 4.2 - Listas Separadas</title>
-    
-    <!-- Firebase App + Auth + Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
-    
+    <title>Lista de Compras - Firebase</title>
     <style>
-        /* Reset e configurações para mobile */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -26,7 +19,7 @@
             min-height: 100vh;
             padding: 15px 10px;
             margin: 0;
-            font-size: 16px; /* Tamanho base maior para mobile */
+            font-size: 16px;
             line-height: 1.5;
         }
 
@@ -47,14 +40,13 @@
             font-weight: 700;
         }
 
-        /* Área de Autenticação - MAIOR */
         #auth-status {
             text-align: center;
             margin-bottom: 25px;
         }
 
         #user-info {
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
             color: #4b5563;
             margin-top: 8px;
             word-wrap: break-word;
@@ -64,10 +56,10 @@
         .error-message {
             color: #dc2626;
             background-color: #fee2e2;
-            padding: 15px; /* Aumentado */
+            padding: 15px;
             border-radius: 8px;
             margin-top: 12px;
-            font-size: 0.95em; /* Aumentado */
+            font-size: 0.95em;
             text-align: left;
             line-height: 1.5;
         }
@@ -75,22 +67,32 @@
         .alert-message {
             color: #1e3a8a;
             background-color: #e0f2fe;
-            padding: 15px; /* Aumentado */
+            padding: 15px;
             border-radius: 8px;
             margin-top: 12px;
-            font-size: 0.95em; /* Aumentado */
+            font-size: 0.95em;
             text-align: left;
             line-height: 1.5;
         }
 
-        /* Botões de Login/Logout - MAIORES */
+        .success-message {
+            color: #065f46;
+            background-color: #d1fae5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 0.95em;
+            text-align: left;
+            line-height: 1.5;
+        }
+
         #google-login-btn {
             background-color: #4285F4;
             color: white;
             border: none;
-            padding: 16px 24px; /* Aumentado */
-            border-radius: 10px; /* Aumentado */
-            font-size: 1.1em; /* Aumentado */
+            padding: 16px 24px;
+            border-radius: 10px;
+            font-size: 1.1em;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -98,9 +100,9 @@
             gap: 12px;
             margin: 15px auto;
             width: 100%;
-            max-width: 280px; /* Aumentado */
+            max-width: 280px;
             transition: background-color 0.3s;
-            min-height: 56px; /* Altura mínima para touch */
+            min-height: 56px;
         }
         
         #google-login-btn:hover {
@@ -111,20 +113,19 @@
             background-color: #f97316;
             color: white;
             border: none;
-            padding: 12px 20px; /* Aumentado */
+            padding: 12px 20px;
             border-radius: 8px;
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
             cursor: pointer;
             margin-left: 12px;
             transition: background-color 0.3s;
-            min-height: 44px; /* Altura mínima para touch */
+            min-height: 44px;
         }
         
         #logout-btn:hover {
             background-color: #ea580c;
         }
 
-        /* Controles Superiores - MAIORES */
         .controles-superiores {
             display: flex;
             justify-content: space-between;
@@ -143,14 +144,14 @@
         }
 
         .modo-btn {
-            padding: 12px 16px; /* Aumentado */
+            padding: 12px 16px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.95em; /* Aumentado */
+            font-size: 0.95em;
             transition: all 0.3s;
             background: transparent;
-            min-height: 44px; /* Altura mínima para touch */
+            min-height: 44px;
         }
 
         .modo-btn.active {
@@ -162,19 +163,19 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
         }
 
         #orcamento-input {
-            width: 100px; /* Aumentado */
-            padding: 10px; /* Aumentado */
+            width: 100px;
+            padding: 10px;
             border: 2px solid #d1d5db;
             border-radius: 8px;
             font-size: 1em;
         }
 
         .status-orcamento {
-            padding: 8px 12px; /* Aumentado */
+            padding: 8px 12px;
             border-radius: 15px;
             font-size: 0.9em;
             font-weight: bold;
@@ -197,7 +198,6 @@
             color: #dc2626;
         }
 
-        /* Abas das Listas - MAIORES */
         .abas-listas {
             display: flex;
             margin-bottom: 20px;
@@ -208,14 +208,14 @@
 
         .aba {
             flex: 1;
-            padding: 15px 10px; /* Aumentado */
+            padding: 15px 10px;
             text-align: center;
             cursor: pointer;
             border-radius: 10px;
             transition: all 0.3s;
             font-weight: 600;
-            font-size: 1em; /* Aumentado */
-            min-height: 54px; /* Altura mínima para touch */
+            font-size: 1em;
+            min-height: 54px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -234,7 +234,6 @@
             border-left: 4px solid #3b82f6;
         }
 
-        /* Conteúdo das Listas */
         .conteudo-lista {
             display: none;
         }
@@ -244,16 +243,15 @@
         }
 
         .info-lista {
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
             color: #6b7280;
             margin-bottom: 20px;
-            padding: 15px; /* Aumentado */
+            padding: 15px;
             background: #f8fafc;
             border-radius: 10px;
             line-height: 1.5;
         }
 
-        /* Formulário de Adição - MAIOR */
         #form-item-rapida, #form-item-mercado {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -280,11 +278,11 @@
 
         #input-item-rapida, #input-preco-rapida, #input-quantity-rapida, #input-categoria-rapida,
         #input-item-mercado, #input-preco-mercado, #input-quantity-mercado, #input-categoria-mercado {
-            padding: 14px; /* Aumentado */
+            padding: 14px;
             border: 2px solid #d1d5db;
             border-radius: 10px;
-            font-size: 1.1em; /* Aumentado */
-            min-height: 52px; /* Altura mínima para touch */
+            font-size: 1.1em;
+            min-height: 52px;
         }
         
         #input-item-rapida, #input-item-mercado {
@@ -295,26 +293,26 @@
         #input-preco-rapida, #input-quantity-rapida,
         #input-preco-mercado, #input-quantity-mercado {
             flex-grow: 1;
-            min-width: 80px; /* Aumentado */
+            min-width: 80px;
             text-align: center;
         }
         
         #input-categoria-rapida, #input-categoria-mercado {
             flex-grow: 1;
-            min-width: 140px; /* Aumentado */
+            min-width: 140px;
         }
 
         #form-item-rapida button, #form-item-mercado button {
             grid-column: 2 / 3;
-            padding: 14px 20px; /* Aumentado */
+            padding: 14px 20px;
             border: none;
             background-color: #10b981;
             color: white;
             cursor: pointer;
-            font-size: 1.1em; /* Aumentado */
+            font-size: 1.1em;
             border-radius: 10px;
             transition: background-color 0.3s;
-            min-height: 52px; /* Altura mínima para touch */
+            min-height: 52px;
             font-weight: 600;
         }
 
@@ -322,17 +320,16 @@
             background-color: #059669;
         }
 
-        /* Área de Favoritos - MAIOR */
         .favoritos-area {
             margin-bottom: 20px;
-            padding: 15px; /* Aumentado */
+            padding: 15px;
             background: #fff7ed;
             border-radius: 12px;
             border: 2px dashed #fdba74;
         }
 
         .favoritos-titulo {
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
             font-weight: bold;
             color: #ea580c;
             margin-bottom: 12px;
@@ -345,32 +342,31 @@
         }
 
         .favorito-btn {
-            padding: 10px 16px; /* Aumentado */
+            padding: 10px 16px;
             background: white;
             border: 2px solid #fdba74;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.95em; /* Aumentado */
+            font-size: 0.95em;
             transition: all 0.3s;
-            min-height: 44px; /* Altura mínima para touch */
+            min-height: 44px;
         }
 
         .favorito-btn:hover {
             background: #ffedd5;
         }
 
-        /* Controlo de Ordenação - MAIOR */
         .sort-controls {
             display: flex;
             justify-content: flex-end;
             align-items: center;
             margin-bottom: 15px;
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
             color: #4b5563;
         }
         
         #sort-select-rapida, #sort-select-mercado {
-            padding: 10px; /* Aumentado */
+            padding: 10px;
             border-radius: 8px;
             border: 2px solid #d1d5db;
             margin-left: 8px;
@@ -378,7 +374,6 @@
             min-height: 44px;
         }
 
-        /* Lista de Compras - ITENS MAIORES */
         .lista-compras {
             list-style: none;
             padding: 0;
@@ -388,12 +383,12 @@
         .category-header {
             background-color: #f3f4f6;
             color: #374151;
-            padding: 12px 15px; /* Aumentado */
+            padding: 12px 15px;
             margin-top: 20px;
             margin-bottom: 8px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
             border-left: 5px solid #1e3a8a;
         }
 
@@ -401,19 +396,19 @@
             display: grid;
             grid-template-columns: 1fr auto auto auto;
             align-items: center;
-            padding: 15px 0; /* Aumentado */
-            border-bottom: 2px solid #e5e7eb; /* Aumentado */
-            font-size: 1.1em; /* Aumentado */
+            padding: 15px 0;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 1.1em;
             gap: 10px;
-            min-height: 60px; /* Altura mínima para touch */
+            min-height: 60px;
         }
 
         .item-name {
             cursor: pointer;
             transition: color 0.3s;
             word-break: break-word;
-            font-size: 1.1em; /* Aumentado */
-            padding: 8px 0; /* Área de clique maior */
+            font-size: 1.1em;
+            padding: 8px 0;
             line-height: 1.4;
         }
         
@@ -431,11 +426,11 @@
             color: #374151;
             text-align: right;
             cursor: pointer;
-            padding: 12px 8px; /* Aumentado */
-            min-width: 70px; /* Aumentado */
+            padding: 12px 8px;
+            min-width: 70px;
             border-radius: 6px;
             transition: background-color 0.2s;
-            font-size: 1.1em; /* Aumentado */
+            font-size: 1.1em;
             border: 1px solid transparent;
         }
         
@@ -447,14 +442,14 @@
         .remover-item {
             background-color: #ef4444;
             color: white;
-            padding: 10px 14px; /* Aumentado */
-            font-size: 1em; /* Aumentado */
+            padding: 10px 14px;
+            font-size: 1em;
             border-radius: 8px;
             transition: background-color 0.3s;
             border: none;
             cursor: pointer;
-            min-width: 44px; /* Largura mínima para touch */
-            min-height: 44px; /* Altura mínima para touch */
+            min-width: 44px;
+            min-height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -464,18 +459,16 @@
             background-color: #dc2626;
         }
 
-        /* Área de Total - MAIOR */
         .total-area {
             text-align: right;
             margin-top: 20px;
             padding-top: 15px;
             border-top: 3px solid #ccc;
-            font-size: 1.3em; /* Aumentado */
+            font-size: 1.3em;
             color: #1e3a8a;
             font-weight: 600;
         }
 
-        /* Botões de Ação - MAIORES */
         .botoes-acao {
             display: flex;
             gap: 12px;
@@ -484,14 +477,14 @@
         }
 
         .acao-btn {
-            padding: 18px; /* Aumentado */
+            padding: 18px;
             border: none;
             border-radius: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s;
-            font-size: 1.1em; /* Aumentado */
-            min-height: 60px; /* Altura mínima para touch */
+            font-size: 1.1em;
+            min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -514,7 +507,6 @@
             background-color: #7c3aed;
         }
 
-        /* Histórico - MAIOR */
         .historico {
             margin-top: 35px;
             padding-top: 25px;
@@ -522,7 +514,7 @@
         }
 
         .historico h2 {
-            font-size: 1.5em; /* Aumentado */
+            font-size: 1.5em;
             color: #374151;
             margin-bottom: 20px;
             font-weight: 700;
@@ -530,7 +522,7 @@
 
         .historico-lista li {
             background-color: #f9fafb;
-            padding: 15px; /* Aumentado */
+            padding: 15px;
             margin-bottom: 15px;
             border-radius: 12px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
@@ -544,11 +536,11 @@
             margin-bottom: 8px;
             border-bottom: 2px dashed #e5e7eb;
             padding-bottom: 8px;
-            font-size: 1.05em; /* Aumentado */
+            font-size: 1.05em;
         }
 
         .historico-detalhe {
-            font-size: 1em; /* Aumentado */
+            font-size: 1em;
             color: #4b5563;
             margin-left: 12px;
             line-height: 1.5;
@@ -558,7 +550,7 @@
             text-align: center;
             padding: 25px;
             color: #6b7280;
-            font-size: 1.1em; /* Aumentado */
+            font-size: 1.1em;
         }
         
         .disabled-overlay {
@@ -568,18 +560,23 @@
             transition: opacity 0.5s;
         }
 
-        /* Estilos específicos por modo */
-        .modo-rapido .conteudo-lista {
-            border-left: 4px solid #10b981;
-            padding-left: 12px;
+        .sync-status {
+            font-size: 0.8em;
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+        
+        .sync-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .sync-offline {
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        .modo-mercado .conteudo-lista {
-            border-left: 4px solid #3b82f6;
-            padding-left: 12px;
-        }
-
-        /* Media Queries para ajustes adicionais em telas muito pequenas */
         @media (max-width: 380px) {
             .container {
                 padding: 15px 10px;
@@ -607,33 +604,8 @@
             #input-categoria-rapida, #input-categoria-mercado {
                 min-width: 100%;
             }
-            
-            .lista-compras li {
-                grid-template-columns: 1fr auto;
-                grid-template-rows: auto auto;
-                gap: 8px;
-            }
-            
-            .item-name {
-                grid-column: 1 / 3;
-            }
-            
-            .editable-quantity {
-                grid-column: 1 / 2;
-            }
-            
-            .editable-price {
-                grid-column: 2 / 3;
-            }
-            
-            .remover-item {
-                grid-column: 1 / 3;
-                justify-self: center;
-                margin-top: 8px;
-            }
         }
 
-        /* Melhorias de acessibilidade para touch */
         button, .aba, .favorito-btn, .editable-price, .editable-quantity, .item-name {
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -641,37 +613,42 @@
             user-select: none;
         }
 
-        /* Feedback visual para toques */
         button:active, .aba:active, .favorito-btn:active {
             transform: scale(0.98);
             transition: transform 0.1s;
         }
     </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <!-- O HTML permanece exatamente o mesmo -->
     <div class="container">
         <h1>🛒 Minha Lista de Compras</h1>
         
         <div id="auth-status">
-            <div id="user-info">A carregar autenticação...</div>
+            <div id="user-info">Conectando ao Firebase...</div>
             <div id="auth-buttons">
                 <button id="google-login-btn">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTAwOUg5LjE4VjEwLjkxSDExLjQ4QzExLjI0IDExLjk3IDEwLjUzIDEyLjkyIDkuNDcgMTMuMzZMMTEuNTYgMTUuMzlDMTMuMTQgMTMuOTMgMTQuMDIgMTEuNTMgMTQuMDIgOC45OTk5OUMxNC4wMiA4LjQyOTk5IDEzLjk2IDcuODc5OTkgMTMuODQgNy4zNDk5OUwxNi41MSA5LjIwNDU1WiIgZmlsbD0iIzQyODVGMyIvPgo8cGF0aCBkPSJNOS4xOCAxNy4wMkM2LjY2IDE3LjAyIDQuNDcgMTUuODIgMy4wNSAxMy45NEw1LjE0IDExLjkxQzUuODggMTMuMjkgNy4yMiAxNC4xIDkuMTggMTQuMUM5LjY2IDE0LjEgMTAuMTIgMTQuMDIgMTAuNTUgMTMuODdMMTIuNjQgMTUuOTBDMTEuNjMgMTYuNzMgMTAuNDggMTcuMDIgOS4xOCAxNy4wMloiIGZpbGw9IiMzNEE4NTMiLz4KPHBhdGggZD0iTTMuMDUgNi4wNTk5OUMzLjA1IDUuNjk5OTkgMy4xMSA1LjM0OTk5IDMuMjMgNC45OTk5OUwxLjE0IDIuOTY5OTlDMC41NCA0LjA0OTk5IDAuMTggNS4yNzk5OSAwLjE4IDYuNDk5OTlDMC4xOCA3LjcxOTk5IDAuNTQgOC45Mzk5OSAxLjE0IDEwLjAyTDMuMjMgNy45OTk5OUMzLjExIDcuNjQ5OTkgMy4wNSA3LjI5OTk5IDMuMDUgNi45Mzk5OVY2LjA1OTk5WiIgZmlsbD0iI0ZCQkMwNCIvPgo8cGF0aCBkPSJNOS4xOCAyLjg5OTk5QzEwLjU1IDIuODk5OTkgMTEuNzYgMy4zNjk5OSAxMi42OSA0LjI5OTk5TDE1LjA2IDEuOTI5OTlDMTMuNjMgMC41Mzk5OTQgMTEuNDggLTAuMDIwMDA2IDkuMTggLTAuMDIwMDA2QzYuNjYgLTAuMDIwMDA2IDQuNDcgMS4xNzk5OSAzLjA1IDMuMDU5OTlMNS4xNCA1LjA4OTk5QzUuODggMy43MDk5OSA3LjIyIDIuODk5OTkgOS4xOCAyLjg5OTk5WiIgZmlsbD0iIzM0QTg1MyIvPgo8L3N2Zz4K" alt="Google Logo">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTAwOUg5LjE4VjEwLjkxSDExLjQ4QzExLjI0IDExLjk3IDEwLjUzIDEyLjkyIDkuNDcgMTMuMzZMMTEuNTYgMTUuMzlDMTMuMTQgMTMuOTMgMTQuMDIgMTEuNTMgMTQuMDIgOC45OTk5OUMxNC4wMiA4LjQyOTk5IDEzLjk2IDcuODc5OTkgMTMuODQgNy4zNDk5OUwxNi41MSA5LjIwNDU1WiIgZmlsbD0iIzQyODVGMyIvPgo8cGF0aCBkPSJOS4xOCAxNy4wMkM2LjY2IDE3LjAyIDQuNDcgMTUuODIgMy4wNSAxMy45NEw1LjE0IDExLjkxQzUuODggMTMuMjkgNy4yMiAxNC4xIDkuMTggMTQuMUM5LjY2IDE0LjEgMTAuMTIgMTQuMDIgMTAuNTUgMTMuODdMMTIuNjQgMTUuOTBDMTEuNjMgMTYuNzMgMTAuNDggMTcuMDIgOS4xOCAxNy4wMloiIGZpbGw9IiMzNEE4NTMiLz4KPHBhdGggZD0iTTMuMDUgNi4wNTk5OUMzLjA1IDUuNjk5OTkgMy4xMSA1LjM0OTk5IDMuMjMgNC45OTk5OUwxLjE0IDIuOTY5OTlDMC41NCA0LjA0OTk5IDAuMTggNS4yNzk5OSAwLjE4IDYuNDk5OTlDMC4xOCA3LjcxOTk5IDAuNTQgOC45Mzk5OSAxLjE0IDEwLjAyTDMuMjMgNy45OTk5OUMzLjExIDcuNjQ5OTkgMy4wNSA3LjI5OTk5IDMuMDUgNi45Mzk5OVY2LjA1OTk5WiIgZmlsbD0iI0ZCQkMwNCIvPgo8cGF0aCBkPSJOS4xOCAyLjg5OTk5QzEwLjU1IDIuODk5OTkgMTEuNzYgMy4zNjk5OSAxMi42OSA0LjI5OTk5TDE1LjA2IDEuOTI5OTlDMTMuNjMgMC41Mzk5OTQgMTEuNDggLTAuMDIwMDA2IDkuMTggLTAuMDIwMDA2QzYuNjYgLTAuMDIwMDA2IDQuNDcgMS4xNzk5OSAzLjA1IDMuMDU5OTlMNS4xNCA1LjA4OTk5QzUuODggMy43MDk5OSA3LjIyIDIuODk5OTkgOS4xOCAyLjg5OTk5WiIgZmlsbD0iIzM0QTg1MyIvPgo8L3N2Zz4K" alt="Google Logo">
                     Entrar com Google
                 </button>
                 <button id="logout-btn" style="display:none;">Sair</button>
             </div>
             <div id="auth-error-message" class="error-message" style="display:none;"></div>
+            <div id="firebase-status" class="alert-message">
+                <strong>Status Firebase:</strong> Inicializando...
+            </div>
         </div>
 
         <div id="app-content" class="loading-message disabled-overlay">
             <p id="loading-text">Faça login para aceder à sua lista</p>
             
-            <!-- Controles Superiores -->
             <div class="controles-superiores">
                 <div class="modos-compra">
-                    <button class="modo-btn active" data-modo="rapido">⚡ Rápido</button>
+                    <button class="modo-btn active" data-modo="rapida">⚡ Rápido</button>
                     <button class="modo-btn" data-modo="mercado">🏪 Mercado</button>
                 </div>
                 
@@ -679,32 +656,23 @@
                     <span>Orçamento:</span>
                     <input type="number" id="orcamento-input" placeholder="0.00" step="0.01" min="0">
                     <span id="status-orcamento" class="status-orcamento status-dentro">-</span>
+                    <span id="sync-status" class="sync-status sync-offline">Offline</span>
                 </div>
             </div>
 
-            <!-- Abas das Listas -->
             <div class="abas-listas">
-                <div class="aba aba-rapida active" data-lista="rapida">
-                    🛍️ Lista Rápida
-                </div>
-                <div class="aba aba-mercado" data-lista="mercado">
-                    🏪 Lista do Mercado
-                </div>
+                <div class="aba aba-rapida active" data-lista="rapida">🛍️ Lista Rápida</div>
+                <div class="aba aba-mercado" data-lista="mercado">🏪 Lista do Mercado</div>
             </div>
 
-            <!-- Conteúdo da Lista Rápida -->
             <div id="conteudo-rapida" class="conteudo-lista active">
                 <div class="info-lista">
-                    <strong>Lista Rápida:</strong> Itens do dia a dia que você compra com frequência. 
-                    Adicione rapidamente e depois transfira para a Lista do Mercado.
+                    <strong>Lista Rápida:</strong> Itens do dia a dia. Adicione rapidamente e depois transfira para a Lista do Mercado.
                 </div>
 
-                <!-- Área de Favoritos -->
                 <div class="favoritos-area">
                     <div class="favoritos-titulo">⭐ Favoritos - Clique para adicionar</div>
-                    <div class="lista-favoritos" id="lista-favoritos">
-                        <!-- Favoritos serão carregados aqui -->
-                    </div>
+                    <div class="lista-favoritos" id="lista-favoritos"></div>
                 </div>
 
                 <form id="form-item-rapida">
@@ -721,7 +689,7 @@
                     <button type="submit">Adicionar à Lista Rápida</button>
                 </form>
 
-                <div id="sort-controls-rapida" class="sort-controls">
+                <div class="sort-controls">
                     <span>Ordenar por:</span>
                     <select id="sort-select-rapida">
                         <option value="adicao">Ordem de Inclusão</option>
@@ -729,20 +697,16 @@
                     </select>
                 </div>
 
-                <ul id="lista-compras-rapida" class="lista-compras">
-                    <!-- Itens da lista rápida aqui -->
-                </ul>
+                <ul id="lista-compras-rapida" class="lista-compras"></ul>
                 
                 <div class="total-area">
                     <strong>Total Lista Rápida:</strong> <span id="valor-total-rapida">R$ 0,00</span>
                 </div>
             </div>
 
-            <!-- Conteúdo da Lista do Mercado -->
             <div id="conteudo-mercado" class="conteudo-lista">
                 <div class="info-lista">
-                    <strong>Lista do Mercado:</strong> Compra semanal ou mensal completa. 
-                    Organize por categorias e controle seu orçamento.
+                    <strong>Lista do Mercado:</strong> Compra semanal ou mensal completa. Organize por categorias e controle seu orçamento.
                 </div>
 
                 <form id="form-item-mercado">
@@ -759,7 +723,7 @@
                     <button type="submit">Adicionar ao Mercado</button>
                 </form>
 
-                <div id="sort-controls-mercado" class="sort-controls">
+                <div class="sort-controls">
                     <span>Ordenar por:</span>
                     <select id="sort-select-mercado">
                         <option value="adicao">Ordem de Inclusão</option>
@@ -767,9 +731,7 @@
                     </select>
                 </div>
 
-                <ul id="lista-compras-mercado" class="lista-compras">
-                    <!-- Itens da lista do mercado aqui -->
-                </ul>
+                <ul id="lista-compras-mercado" class="lista-compras"></ul>
                 
                 <div class="total-area">
                     <strong>Total Mercado:</strong> <span id="valor-total-mercado">R$ 0,00</span>
@@ -780,7 +742,6 @@
 
             <datalist id="catalog-suggestions"></datalist>
 
-            <!-- Botões de Ação -->
             <div class="botoes-acao">
                 <button id="transferir-btn" class="acao-btn">➡️ Transferir para Mercado</button>
                 <button id="arquivar-btn" class="acao-btn">✅ Finalizar Compra</button>
@@ -788,32 +749,728 @@
         
             <div class="historico">
                 <h2>📊 Histórico de Compras</h2>
-                <ul class="historico-lista" id="historico-compras">
-                    <!-- Histórico será adicionado aqui -->
-                </ul>
+                <ul class="historico-lista" id="historico-compras"></ul>
             </div>
         </div>
     </div>
 
     <script>
-        // O JavaScript permanece exatamente o mesmo do código anterior
-        // uração do Firebase
+        // ========== CONFIGURAÇÃO FIREBASE ==========
         const firebaseConfig = {
-  apiKey: "AIzaSyBYUgpk09FkcqLzhsKLZhi0KislYd0iqhQ",
-  authDomain: "lista-de-compras-8f7db.firebaseapp.com",
-  projectId: "lista-de-compras-8f7db",
-  storageBucket: "lista-de-compras-8f7db.firebasestorage.app",
-  messagingSenderId: "226215342595",
-  appId: "1:226215342595:web:63267d7d6361d809709436"
-};
+            apiKey: "AIzaSyBYUgpk09FkcqLzhsKLZhi0KislYd0iqhQ",
+            authDomain: "lista-de-compras-8f7db.firebaseapp.com",
+            projectId: "lista-de-compras-8f7db",
+            storageBucket: "lista-de-compras-8f7db.firebasestorage.app",
+            messagingSenderId: "226215342595",
+            appId: "1:226215342595:web:63267d7d6361d809709436"
+        };
 
-        // Inicialização do Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // ========== INICIALIZAÇÃO FIREBASE ==========
+        let auth, db, userId = null;
+        let isOnline = true;
 
-        // ... (resto do JavaScript permanece igual)
-        // [Todo o código JavaScript da versão anterior é mantido aqui]
+        try {
+            // Inicializar Firebase
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            
+            console.log("✅ Firebase inicializado com sucesso!");
+            document.getElementById('firebase-status').innerHTML = 
+                '<strong>✅ Firebase Conectado!</strong> Faça login para sincronizar seus dados.';
+            
+        } catch (error) {
+            console.error("❌ Erro ao inicializar Firebase:", error);
+            document.getElementById('firebase-status').innerHTML = 
+                '<strong>❌ Erro no Firebase:</strong> ' + error.message;
+        }
+
+        // ========== CONFIGURAÇÃO DA APLICAÇÃO ==========
+        const CATEGORIAS = [
+            { id: "A01", nome: "Hortifrúti / Frios" },
+            { id: "A02", nome: "Laticínios / Iogurtes" },
+            { id: "B01", nome: "Padaria / Matinais" },
+            { id: "C01", nome: "Carnes / Peixes Congelados" },
+            { id: "D01", nome: "Mercearia (Arroz, Feijão)" },
+            { id: "D02", nome: "Bebidas / Sucos" },
+            { id: "E01", nome: "Limpeza" },
+            { id: "E02", nome: "Higiene Pessoal" },
+            { id: "Z99", nome: "Outros" }
+        ];
+
+        const FAVORITOS_PADRAO = [
+            { nome: "Pão", preco: 8.50, categoria: "B01" },
+            { nome: "Leite", preco: 5.20, categoria: "A02" },
+            { nome: "Ovos", preco: 15.00, categoria: "A02" },
+            { nome: "Café", preco: 18.90, categoria: "B01" },
+            { nome: "Arroz", preco: 25.50, categoria: "D01" },
+            { nome: "Feijão", preco: 7.80, categoria: "D01" },
+            { nome: "Frango", preco: 16.50, categoria: "C01" },
+            { nome: "Banana", preco: 6.50, categoria: "A01" }
+        ];
+
+        // ========== VARIÁVEIS GLOBAIS ==========
+        let listaRapidaCache = [];
+        let listaMercadoCache = [];
+        let catalogData = {};
+        let orcamentoAtual = 0;
+        let listaAtiva = 'rapida';
+
+        // ========== FUNÇÕES FIREBASE ==========
+        async function salvarNoFirebase(colecao, dados) {
+            if (!userId || !db) {
+                console.log("⚠️  Usuário não logado, salvando localmente");
+                salvarDadosLocais();
+                return null;
+            }
+
+            try {
+                const resultado = await db.collection('users').doc(userId).collection(colecao).add({
+                    ...dados,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("✅ Salvo no Firebase:", colecao, dados.nome);
+                atualizarStatusSync(true);
+                return resultado.id;
+            } catch (error) {
+                console.error("❌ Erro ao salvar no Firebase:", error);
+                atualizarStatusSync(false);
+                // Fallback para localStorage
+                salvarDadosLocais();
+                throw error;
+            }
+        }
+
+        async function atualizarNoFirebase(colecao, itemId, dados) {
+            if (!userId || !db) {
+                salvarDadosLocais();
+                return;
+            }
+
+            try {
+                await db.collection('users').doc(userId).collection(colecao).doc(itemId).update(dados);
+                console.log("✅ Atualizado no Firebase:", colecao, itemId);
+                atualizarStatusSync(true);
+            } catch (error) {
+                console.error("❌ Erro ao atualizar no Firebase:", error);
+                atualizarStatusSync(false);
+                salvarDadosLocais();
+            }
+        }
+
+        async function removerDoFirebase(colecao, itemId) {
+            if (!userId || !db) {
+                salvarDadosLocais();
+                return;
+            }
+
+            try {
+                await db.collection('users').doc(userId).collection(colecao).doc(itemId).delete();
+                console.log("✅ Removido do Firebase:", colecao, itemId);
+                atualizarStatusSync(true);
+            } catch (error) {
+                console.error("❌ Erro ao remover do Firebase:", error);
+                atualizarStatusSync(false);
+                salvarDadosLocais();
+            }
+        }
+
+        function setupFirebaseListeners() {
+            if (!userId || !db) return;
+
+            // Listener para lista rápida
+            db.collection('users').doc(userId).collection('listaRapida')
+                .onSnapshot((snapshot) => {
+                    listaRapidaCache = [];
+                    snapshot.forEach((doc) => {
+                        listaRapidaCache.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderListaRapida();
+                    atualizarStatusSync(true);
+                }, (error) => {
+                    console.error("❌ Erro listener lista rápida:", error);
+                    atualizarStatusSync(false);
+                });
+
+            // Listener para lista mercado
+            db.collection('users').doc(userId).collection('listaMercado')
+                .onSnapshot((snapshot) => {
+                    listaMercadoCache = [];
+                    snapshot.forEach((doc) => {
+                        listaMercadoCache.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderListaMercado();
+                    atualizarStatusSync(true);
+                }, (error) => {
+                    console.error("❌ Erro listener lista mercado:", error);
+                    atualizarStatusSync(false);
+                });
+
+            // Carregar configurações
+            carregarConfiguracoesFirebase();
+        }
+
+        async function carregarConfiguracoesFirebase() {
+            if (!userId || !db) return;
+
+            try {
+                // Carregar catálogo
+                const catalogoDoc = await db.collection('users').doc(userId).collection('configuracoes').doc('catalogo').get();
+                if (catalogoDoc.exists) {
+                    catalogData = catalogoDoc.data().precos || {};
+                }
+
+                // Carregar orçamento
+                const orcamentoDoc = await db.collection('users').doc(userId).collection('configuracoes').doc('orcamento').get();
+                if (orcamentoDoc.exists) {
+                    orcamentoAtual = orcamentoDoc.data().valor || 0;
+                    document.getElementById('orcamento-input').value = orcamentoAtual;
+                }
+
+                renderCatalogo();
+                atualizarOrcamento();
+                atualizarStatusSync(true);
+                
+            } catch (error) {
+                console.error("❌ Erro ao carregar configurações:", error);
+                atualizarStatusSync(false);
+            }
+        }
+
+        async function salvarConfiguracoesFirebase() {
+            if (!userId || !db) return;
+
+            try {
+                // Salvar catálogo
+                await db.collection('users').doc(userId).collection('configuracoes').doc('catalogo').set({
+                    precos: catalogData,
+                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // Salvar orçamento
+                await db.collection('users').doc(userId).collection('configuracoes').doc('orcamento').set({
+                    valor: orcamentoAtual,
+                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                console.log("✅ Configurações salvas no Firebase");
+                atualizarStatusSync(true);
+                
+            } catch (error) {
+                console.error("❌ Erro ao salvar configurações:", error);
+                atualizarStatusSync(false);
+            }
+        }
+
+        function atualizarStatusSync(online) {
+            isOnline = online;
+            const syncStatus = document.getElementById('sync-status');
+            if (online) {
+                syncStatus.textContent = 'Online';
+                syncStatus.className = 'sync-status sync-online';
+            } else {
+                syncStatus.textContent = 'Offline';
+                syncStatus.className = 'sync-status sync-offline';
+            }
+        }
+
+        // ========== FUNÇÕES LOCAIS (FALLBACK) ==========
+        function carregarDadosLocais() {
+            listaRapidaCache = JSON.parse(localStorage.getItem('listaRapida')) || [];
+            listaMercadoCache = JSON.parse(localStorage.getItem('listaMercado')) || [];
+            catalogData = JSON.parse(localStorage.getItem('catalogo')) || {};
+            orcamentoAtual = parseFloat(localStorage.getItem('orcamento')) || 0;
+            
+            document.getElementById('orcamento-input').value = orcamentoAtual;
+        }
+
+        function salvarDadosLocais() {
+            localStorage.setItem('listaRapida', JSON.stringify(listaRapidaCache));
+            localStorage.setItem('listaMercado', JSON.stringify(listaMercadoCache));
+            localStorage.setItem('catalogo', JSON.stringify(catalogData));
+            localStorage.setItem('orcamento', orcamentoAtual.toString());
+        }
+
+        // ========== FUNÇÕES PRINCIPAIS ==========
+        function carregarDados() {
+            if (userId && db) {
+                // Usar Firebase se logado
+                setupFirebaseListeners();
+            } else {
+                // Usar localStorage
+                carregarDadosLocais();
+                renderListaRapida();
+                renderListaMercado();
+                renderFavoritos();
+                renderCatalogo();
+                atualizarOrcamento();
+                renderHistorico();
+            }
+        }
+
+        function formatCurrency(value) {
+            return `R$ ${parseFloat(value).toFixed(2).replace('.', ',')}`;
+        }
+
+        function detectarCategoria(nomeItem) {
+            const nomeLower = nomeItem.toLowerCase();
+            if (nomeLower.includes('leite') || nomeLower.includes('queijo') || nomeLower.includes('iogurte')) return 'A02';
+            if (nomeLower.includes('pão') || nomeLower.includes('bolo') || nomeLower.includes('café')) return 'B01';
+            if (nomeLower.includes('arroz') || nomeLower.includes('feijão') || nomeLower.includes('macarrão')) return 'D01';
+            if (nomeLower.includes('carne') || nomeLower.includes('frango') || nomeLower.includes('peixe')) return 'C01';
+            if (nomeLower.includes('detergente') || nomeLower.includes('sabão') || nomeLower.includes('limpeza')) return 'E01';
+            if (nomeLower.includes('shampoo') || nomeLower.includes('sabonete') || nomeLower.includes('papel higiênico')) return 'E02';
+            if (nomeLower.includes('banana') || nomeLower.includes('maçã') || nomeLower.includes('laranja')) return 'A01';
+            return 'Z99';
+        }
+
+        // ========== RENDERIZAÇÃO ==========
+        function renderListaRapida() {
+            const listaUL = document.getElementById('lista-compras-rapida');
+            listaUL.innerHTML = '';
+            
+            let total = 0;
+            listaRapidaCache.forEach(item => {
+                const li = criarItemLista(item, 'rapida');
+                listaUL.appendChild(li);
+                total += parseFloat(item.preco) * parseInt(item.quantidade);
+            });
+            
+            document.getElementById('valor-total-rapida').textContent = formatCurrency(total);
+        }
+
+        function renderListaMercado() {
+            const listaUL = document.getElementById('lista-compras-mercado');
+            listaUL.innerHTML = '';
+            
+            let total = 0;
+            listaMercadoCache.forEach(item => {
+                const li = criarItemLista(item, 'mercado');
+                listaUL.appendChild(li);
+                total += parseFloat(item.preco) * parseInt(item.quantidade);
+            });
+            
+            document.getElementById('valor-total-mercado').textContent = formatCurrency(total);
+            atualizarOrcamento();
+        }
+
+        function criarItemLista(item, tipoLista) {
+            const li = document.createElement('li');
+            if (item.comprado) li.classList.add('item-comprado');
+
+            const catNome = CATEGORIAS.find(c => c.id === item.categoria)?.nome || 'Outros';
+
+            li.innerHTML = `
+                <span class="item-name" title="Categoria: ${catNome}">${item.nome}</span>
+                <span class="editable-quantity" contenteditable="true">${item.quantidade}</span>
+                <span class="editable-price" contenteditable="true">${formatCurrency(item.preco)}</span>
+                <button class="remover-item">X</button>
+            `;
+
+            li.querySelector('.item-name').addEventListener('click', () => toggleComprado(item.id, tipoLista));
+            li.querySelector('.remover-item').addEventListener('click', () => removerItem(item.id, tipoLista));
+            li.querySelector('.editable-price').addEventListener('blur', (e) => atualizarPreco(item.id, e.target.textContent, tipoLista));
+            li.querySelector('.editable-quantity').addEventListener('blur', (e) => atualizarQuantidade(item.id, e.target.textContent, tipoLista));
+
+            return li;
+        }
+
+        function renderFavoritos() {
+            const listaFavoritos = document.getElementById('lista-favoritos');
+            listaFavoritos.innerHTML = '';
+            
+            FAVORITOS_PADRAO.forEach(favorito => {
+                const btn = document.createElement('button');
+                btn.className = 'favorito-btn';
+                btn.textContent = favorito.nome;
+                btn.addEventListener('click', () => adicionarFavorito(favorito));
+                listaFavoritos.appendChild(btn);
+            });
+        }
+
+        function renderCatalogo() {
+            const datalist = document.getElementById('catalog-suggestions');
+            datalist.innerHTML = '';
+            Object.keys(catalogData).forEach(nome => {
+                const option = document.createElement('option');
+                option.value = nome;
+                datalist.appendChild(option);
+            });
+        }
+
+        function renderHistorico() {
+            // Implementar histórico do Firebase se necessário
+        }
+
+        // ========== FUNÇÕES DE CRUD ==========
+        async function adicionarItem(item, tipoLista) {
+            const novoItem = {
+                nome: item.nome,
+                preco: parseFloat(item.preco),
+                quantidade: parseInt(item.quantidade),
+                categoria: item.categoria || detectarCategoria(item.nome),
+                comprado: false
+            };
+
+            try {
+                const itemId = await salvarNoFirebase(tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado', novoItem);
+                
+                // Atualizar cache local apenas se Firebase falhar
+                if (!itemId) {
+                    novoItem.id = Date.now().toString();
+                    novoItem.timestamp = Date.now();
+                    
+                    if (tipoLista === 'rapida') {
+                        listaRapidaCache.push(novoItem);
+                        renderListaRapida();
+                    } else {
+                        listaMercadoCache.push(novoItem);
+                        renderListaMercado();
+                    }
+                }
+
+                // Atualizar catálogo
+                catalogData[item.nome] = { preco: item.preco, categoria: novoItem.categoria };
+                await salvarConfiguracoesFirebase();
+                renderCatalogo();
+                
+            } catch (error) {
+                console.error("Erro ao adicionar item:", error);
+                // Fallback para localStorage
+                novoItem.id = Date.now().toString();
+                novoItem.timestamp = Date.now();
+                
+                if (tipoLista === 'rapida') {
+                    listaRapidaCache.push(novoItem);
+                    renderListaRapida();
+                } else {
+                    listaMercadoCache.push(novoItem);
+                    renderListaMercado();
+                }
+                
+                catalogData[item.nome] = { preco: item.preco, categoria: novoItem.categoria };
+                salvarDadosLocais();
+                renderCatalogo();
+            }
+        }
+
+        async function toggleComprado(itemId, tipoLista) {
+            const lista = tipoLista === 'rapida' ? listaRapidaCache : listaMercadoCache;
+            const item = lista.find(i => i.id === itemId);
+            if (item) {
+                item.comprado = !item.comprado;
+                await atualizarNoFirebase(
+                    tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado',
+                    itemId,
+                    { comprado: item.comprado }
+                );
+                tipoLista === 'rapida' ? renderListaRapida() : renderListaMercado();
+            }
+        }
+
+        async function removerItem(itemId, tipoLista) {
+            await removerDoFirebase(
+                tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado',
+                itemId
+            );
+            
+            // Atualizar cache local
+            if (tipoLista === 'rapida') {
+                listaRapidaCache = listaRapidaCache.filter(i => i.id !== itemId);
+                renderListaRapida();
+            } else {
+                listaMercadoCache = listaMercadoCache.filter(i => i.id !== itemId);
+                renderListaMercado();
+            }
+        }
+
+        async function atualizarPreco(itemId, novoPreco, tipoLista) {
+            const lista = tipoLista === 'rapida' ? listaRapidaCache : listaMercadoCache;
+            const item = lista.find(i => i.id === itemId);
+            if (item) {
+                item.preco = parseFloat(novoPreco.replace('R$', '').replace(',', '.')) || 0;
+                await atualizarNoFirebase(
+                    tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado',
+                    itemId,
+                    { preco: item.preco }
+                );
+                tipoLista === 'rapida' ? renderListaRapida() : renderListaMercado();
+            }
+        }
+
+        async function atualizarQuantidade(itemId, novaQuantidade, tipoLista) {
+            const lista = tipoLista === 'rapida' ? listaRapidaCache : listaMercadoCache;
+            const item = lista.find(i => i.id === itemId);
+            if (item) {
+                item.quantidade = parseInt(novaQuantidade) || 1;
+                await atualizarNoFirebase(
+                    tipoLista === 'rapida' ? 'listaRapida' : 'listaMercado',
+                    itemId,
+                    { quantidade: item.quantidade }
+                );
+                tipoLista === 'rapida' ? renderListaRapida() : renderListaMercado();
+            }
+        }
+
+        function adicionarFavorito(favorito) {
+            if (listaAtiva === 'rapida') {
+                document.getElementById('input-item-rapida').value = favorito.nome;
+                document.getElementById('input-preco-rapida').value = favorito.preco;
+                document.getElementById('input-categoria-rapida').value = favorito.categoria;
+                document.getElementById('input-item-rapida').focus();
+            } else {
+                document.getElementById('input-item-mercado').value = favorito.nome;
+                document.getElementById('input-preco-mercado').value = favorito.preco;
+                document.getElementById('input-categoria-mercado').value = favorito.categoria;
+                document.getElementById('input-item-mercado').focus();
+            }
+        }
+
+        // ========== ORÇAMENTO ==========
+        function atualizarOrcamento() {
+            const totalMercado = listaMercadoCache.reduce((sum, item) => {
+                return sum + (parseFloat(item.preco) * parseInt(item.quantidade));
+            }, 0);
+
+            orcamentoAtual = parseFloat(document.getElementById('orcamento-input').value) || 0;
+            
+            // Salvar orçamento
+            if (userId) {
+                salvarConfiguracoesFirebase();
+            } else {
+                localStorage.setItem('orcamento', orcamentoAtual.toString());
+            }
+
+            const statusOrcamento = document.getElementById('status-orcamento');
+            const infoOrcamento = document.getElementById('info-orcamento');
+
+            if (orcamentoAtual === 0) {
+                statusOrcamento.textContent = '-';
+                statusOrcamento.className = 'status-orcamento';
+                if (infoOrcamento) infoOrcamento.textContent = '';
+            } else {
+                const percentual = (totalMercado / orcamentoAtual) * 100;
+                
+                if (percentual <= 70) {
+                    statusOrcamento.textContent = `${percentual.toFixed(0)}%`;
+                    statusOrcamento.className = 'status-orcamento status-dentro';
+                } else if (percentual <= 90) {
+                    statusOrcamento.textContent = `${percentual.toFixed(0)}%`;
+                    statusOrcamento.className = 'status-orcamento status-alerta';
+                } else {
+                    statusOrcamento.textContent = `${percentual.toFixed(0)}%`;
+                    statusOrcamento.className = 'status-orcamento status-excedido';
+                }
+
+                if (infoOrcamento) {
+                    infoOrcamento.textContent = `Gasto: ${formatCurrency(totalMercado)} de ${formatCurrency(orcamentoAtual)}`;
+                }
+            }
+        }
+
+        // ========== TRANSFERÊNCIA E AÇÕES ==========
+        async function transferirParaMercado() {
+            if (listaRapidaCache.length === 0) {
+                alert('Não há itens na Lista Rápida para transferir!');
+                return;
+            }
+
+            for (const item of listaRapidaCache) {
+                if (!item.comprado) {
+                    await salvarNoFirebase('listaMercado', {
+                        nome: item.nome,
+                        preco: item.preco,
+                        quantidade: item.quantidade,
+                        categoria: item.categoria,
+                        comprado: false
+                    });
+                    
+                    // Remover da lista rápida
+                    await removerDoFirebase('listaRapida', item.id);
+                }
+            }
+
+            alert(`✅ Itens transferidos para o Mercado!`);
+        }
+
+        async function arquivarCompra() {
+            const listaParaArquivar = listaAtiva === 'rapida' ? listaRapidaCache : listaMercadoCache;
+            const itensComprados = listaParaArquivar.filter(item => item.comprado);
+            
+            if (itensComprados.length === 0) {
+                alert(`Não há itens comprados para arquivar na ${listaAtiva === 'rapida' ? 'Lista Rápida' : 'Lista do Mercado'}!`);
+                return;
+            }
+
+            // Remover itens comprados do Firebase
+            for (const item of itensComprados) {
+                await removerDoFirebase(
+                    listaAtiva === 'rapida' ? 'listaRapida' : 'listaMercado',
+                    item.id
+                );
+            }
+
+            alert(`✅ ${itensComprados.length} itens arquivados!`);
+        }
+
+        // ========== AUTENTICAÇÃO ==========
+        function setupAuth() {
+            const googleLoginBtn = document.getElementById('google-login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const authErrorMessageDiv = document.getElementById('auth-error-message');
+            const userInfoDiv = document.getElementById('user-info');
+            const appContent = document.getElementById('app-content');
+            const loadingText = document.getElementById('loading-text');
+
+            // Login Google
+            googleLoginBtn.addEventListener('click', async () => {
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    await auth.signInWithPopup(provider);
+                } catch (error) {
+                    console.error("Erro no login:", error);
+                    authErrorMessageDiv.textContent = `Erro no login: ${error.message}`;
+                    authErrorMessageDiv.style.display = 'block';
+                }
+            });
+
+            // Logout
+            logoutBtn.addEventListener('click', () => {
+                auth.signOut();
+            });
+
+            // Observador de autenticação
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    userId = user.uid;
+                    userInfoDiv.innerHTML = `Logado como: <strong>${user.displayName}</strong> <button id="logout-btn">Sair</button>`;
+                    googleLoginBtn.style.display = 'none';
+                    authErrorMessageDiv.style.display = 'none';
+                    
+                    appContent.classList.remove('disabled-overlay');
+                    loadingText.style.display = 'none';
+
+                    // Reconectar logout button
+                    setTimeout(() => {
+                        document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+                    }, 100);
+
+                    // Carregar dados do Firebase
+                    carregarDados();
+                    
+                } else {
+                    userId = null;
+                    userInfoDiv.textContent = 'Faça login para sincronizar na nuvem';
+                    googleLoginBtn.style.display = 'flex';
+                    logoutBtn.style.display = 'none';
+                    
+                    appContent.classList.add('disabled-overlay');
+                    loadingText.textContent = 'Faça login para aceder à sua lista';
+                    loadingText.style.display = 'block';
+
+                    // Carregar dados locais
+                    carregarDados();
+                }
+            });
+        }
+
+        // ========== EVENT LISTENERS ==========
+        function setupEventListeners() {
+            // Abas
+            document.querySelectorAll('.aba').forEach(aba => {
+                aba.addEventListener('click', (e) => {
+                    document.querySelectorAll('.aba').forEach(a => a.classList.remove('active'));
+                    document.querySelectorAll('.conteudo-lista').forEach(c => c.classList.remove('active'));
+                    
+                    e.target.classList.add('active');
+                    listaAtiva = e.target.dataset.lista;
+                    document.getElementById(`conteudo-${listaAtiva}`).classList.add('active');
+                });
+            });
+
+            // Formulários
+            document.getElementById('form-item-rapida').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nome = document.getElementById('input-item-rapida').value.trim();
+                const preco = document.getElementById('input-preco-rapida').value;
+                const quantidade = document.getElementById('input-quantity-rapida').value;
+                const categoria = document.getElementById('input-categoria-rapida').value;
+                
+                if (nome) {
+                    adicionarItem({ nome, preco, quantidade, categoria }, 'rapida');
+                    e.target.reset();
+                    document.getElementById('input-quantity-rapida').value = '1';
+                }
+            });
+
+            document.getElementById('form-item-mercado').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nome = document.getElementById('input-item-mercado').value.trim();
+                const preco = document.getElementById('input-preco-mercado').value;
+                const quantidade = document.getElementById('input-quantity-mercado').value;
+                const categoria = document.getElementById('input-categoria-mercado').value;
+                
+                if (nome) {
+                    adicionarItem({ nome, preco, quantidade, categoria }, 'mercado');
+                    e.target.reset();
+                    document.getElementById('input-quantity-mercado').value = '1';
+                }
+            });
+
+            // Auto-complete
+            document.getElementById('input-item-rapida').addEventListener('input', function() {
+                const sugestao = catalogData[this.value];
+                if (sugestao) {
+                    document.getElementById('input-preco-rapida').value = sugestao.preco;
+                    document.getElementById('input-categoria-rapida').value = sugestao.categoria;
+                }
+            });
+
+            document.getElementById('input-item-mercado').addEventListener('input', function() {
+                const sugestao = catalogData[this.value];
+                if (sugestao) {
+                    document.getElementById('input-preco-mercado').value = sugestao.preco;
+                    document.getElementById('input-categoria-mercado').value = sugestao.categoria;
+                }
+            });
+
+            // Orçamento
+            document.getElementById('orcamento-input').addEventListener('change', atualizarOrcamento);
+
+            // Botões de ação
+            document.getElementById('transferir-btn').addEventListener('click', transferirParaMercado);
+            document.getElementById('arquivar-btn').addEventListener('click', arquivarCompra);
+        }
+
+        // ========== INICIALIZAÇÃO ==========
+        function inicializar() {
+            // Preencher categorias
+            const selects = ['input-categoria-rapida', 'input-categoria-mercado'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">-- Categoria --</option>';
+                CATEGORIAS.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.nome;
+                    select.appendChild(option);
+                });
+            });
+
+            // Configurar auth e eventos
+            if (auth) {
+                setupAuth();
+            }
+            setupEventListeners();
+            
+            // Carregar dados iniciais (locais até login)
+            carregarDados();
+            
+            console.log("✅ Lista de Compras com Firebase inicializada!");
+        }
+
+        // Iniciar quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', inicializar);
     </script>
 </body>
 </html>
